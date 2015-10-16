@@ -9,10 +9,9 @@
   <class name="L1TMuon::TriggerPrimitive::DTData" ClassVersion="10">
    <version ClassVersion="10" checksum="2509427716"/>
   </class>
-  <class name="L1TMuon::TriggerPrimitive" ClassVersion="11">
-   <version ClassVersion="11" checksum="3982964189"/>
+  <class name="L1TMuon::TriggerPrimitive" ClassVersion="12">
+   <version ClassVersion="12" checksum="1840902384"/>
   </class>
-
   <class name="edm::Wrapper<L1TMuon::TriggerPrimitive>"/>
   <class name="L1TMuon::TriggerPrimitiveCollection"/>
   <class name="edm::Wrapper<L1TMuon::TriggerPrimitiveCollection>"/>
@@ -82,6 +81,24 @@
  </class>
  <class name="edm::Wrapper<BMTrackContainer>"/>
 
-  
+ 
+  <class name="L1TMuon::MBLTCollection"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTCollection>"/>
+  <class name="L1TMuon::MBLTContainerPair"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTContainerPair>"/>
+  <class name="L1TMuon::MBLTContainerRef"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTContainerRef>"/>
+  <class name="L1TMuon::MBLTContainerRefPair"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTContainerRefPair>"/>
+  <class name="L1TMuon::MBLTVectorRef"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTVectorRef>"/>
+  <class name="L1TMuon::MBLTContainer"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTContainer>"/>
+  <class name="L1TMuon::MBLTCollection::primitiveAssociation"/>
+  <class name="edm::Wrapper<L1TMuon::MBLTCollection::primitiveAssociation>"/>
+  <class name="std::vector<L1TMuon::MBLTCollection::primitiveAssociation>"/>
+  <class name="edm::Wrapper<std::vector<L1TMuon::MBLTCollection::primitiveAssociation> >"/>
+
+ 
  </selection>
 </lcgdict>

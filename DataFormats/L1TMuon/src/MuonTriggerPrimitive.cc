@@ -26,7 +26,7 @@ TriggerPrimitive::TriggerPrimitive(const DTChamberId& detid,
   calculateDTGlobalSector(detid,_globalsector,_subsector);
   // fill in information from theta trigger
   _dt.theta_bti_group = -1;
-  _dt.segment_number = segment_number;  
+  _dt.segment_number = segment_number;
   _dt.theta_code = -1;
   _dt.theta_quality = -1;
   // now phi trigger
@@ -85,7 +85,7 @@ TriggerPrimitive::TriggerPrimitive(const DTChamberId& detid,
   _dt.bendingAngle = digi_phi.phiB();
   _dt.qualityCode = digi_phi.code();
   _dt.Ts2TagCode = digi_phi.Ts2Tag();
-  _dt.BxCntCode = digi_phi.BxCnt();    
+  _dt.BxCntCode = digi_phi.BxCnt();
 }
 
 //constructor from CSC data
@@ -120,19 +120,19 @@ TriggerPrimitive::TriggerPrimitive(const RPCDetId& detid,
   _rpc.layer = layer;
   _rpc.bx = bx;
 }
-
+/*
 TriggerPrimitive::TriggerPrimitive(const TriggerPrimitive& tp):
   _dt(tp._dt),
   _csc(tp._csc),
   _rpc(tp._rpc),
   _id(tp._id),
-  _subsystem(tp._subsystem),  
+  _subsystem(tp._subsystem),
   _globalsector(tp._globalsector),
   _subsector(tp._subsector),
   _eta(tp._eta),
   _phi(tp._phi),
   _theta(tp._theta){
-}
+}*/
 
 TriggerPrimitive& TriggerPrimitive::operator=(const TriggerPrimitive& tp) {
   this->_dt = tp._dt;
@@ -147,20 +147,35 @@ TriggerPrimitive& TriggerPrimitive::operator=(const TriggerPrimitive& tp) {
   return *this;
 }
 
+
+TriggerPrimitive::TriggerPrimitive(const TriggerPrimitive& tp):
+  _dt(tp._dt),
+  _csc(tp._csc),
+  _rpc(tp._rpc),
+  _id(tp._id),
+  _subsystem(tp._subsystem),
+  _globalsector(tp._globalsector),
+  _subsector(tp._subsector),
+  _eta(tp._eta),
+  _phi(tp._phi),
+  _rho(tp._rho),
+  _theta(tp._theta){
+}
+
 bool TriggerPrimitive::operator==(const TriggerPrimitive& tp) const {
-  return ( this->_dt.bx == tp._dt.bx && 
-	   this->_dt.wheel == tp._dt.wheel && 
-	   this->_dt.sector == tp._dt.sector && 
-	   this->_dt.station == tp._dt.station && 
-	   this->_dt.radialAngle == tp._dt.radialAngle && 
+  return ( this->_dt.bx == tp._dt.bx &&
+	   this->_dt.wheel == tp._dt.wheel &&
+	   this->_dt.sector == tp._dt.sector &&
+	   this->_dt.station == tp._dt.station &&
+	   this->_dt.radialAngle == tp._dt.radialAngle &&
 	   this->_dt.bendingAngle == tp._dt.bendingAngle &&
-	   this->_dt.qualityCode == tp._dt.qualityCode && 
-	   this->_dt.Ts2TagCode == tp._dt.Ts2TagCode && 
-	   this->_dt.BxCntCode == tp._dt.BxCntCode && 
-	   this->_dt.theta_bti_group == tp._dt.theta_bti_group && 
-	   this->_dt.segment_number == tp._dt.segment_number && 
-	   this->_dt.theta_code == tp._dt.theta_code && 
-	   this->_dt.theta_quality == tp._dt.theta_quality && 
+	   this->_dt.qualityCode == tp._dt.qualityCode &&
+	   this->_dt.Ts2TagCode == tp._dt.Ts2TagCode &&
+	   this->_dt.BxCntCode == tp._dt.BxCntCode &&
+	   this->_dt.theta_bti_group == tp._dt.theta_bti_group &&
+	   this->_dt.segment_number == tp._dt.segment_number &&
+	   this->_dt.theta_code == tp._dt.theta_code &&
+	   this->_dt.theta_quality == tp._dt.theta_quality &&
 	   this->_csc.trknmb == tp._csc.trknmb &&
 	   this->_csc.valid == tp._csc.valid &&
 	   this->_csc.quality == tp._csc.quality &&
@@ -179,7 +194,7 @@ bool TriggerPrimitive::operator==(const TriggerPrimitive& tp) const {
 	   this->_id == tp._id &&
 	   this->_subsystem == tp._subsystem &&
 	   this->_globalsector == tp._globalsector &&
-	   this->_subsector == tp._subsector );	     
+	   this->_subsector == tp._subsector );
 }
 
 const int TriggerPrimitive::getBX() const {
@@ -191,7 +206,7 @@ const int TriggerPrimitive::getBX() const {
   case kRPC:
     return _rpc.bx;
   default:
-    throw cms::Exception("Invalid Subsytem") 
+    throw cms::Exception("Invalid Subsytem")
       << "The specified subsystem for this track stub is out of range"
       << std::endl;
   }
@@ -207,7 +222,7 @@ const int TriggerPrimitive::getStrip() const {
   case kRPC:
     return _rpc.strip;
   default:
-    throw cms::Exception("Invalid Subsytem") 
+    throw cms::Exception("Invalid Subsytem")
       << "The specified subsystem for this track stub is out of range"
       << std::endl;
   }
@@ -223,7 +238,7 @@ const int TriggerPrimitive::getWire() const {
   case kRPC:
     return -1;
   default:
-    throw cms::Exception("Invalid Subsytem") 
+    throw cms::Exception("Invalid Subsytem")
       << "The specified subsystem for this track stub is out of range"
       << std::endl;
   }
@@ -239,7 +254,7 @@ const int TriggerPrimitive::getPattern() const {
   case kRPC:
     return -1;
   default:
-    throw cms::Exception("Invalid Subsytem") 
+    throw cms::Exception("Invalid Subsytem")
       << "The specified subsystem for this track stub is out of range"
       << std::endl;
   }
@@ -254,32 +269,32 @@ const int TriggerPrimitive::Id() const {
   case kRPC:
     return -1;
   default:
-    throw cms::Exception("Invalid Subsytem") 
+    throw cms::Exception("Invalid Subsytem")
       << "The specified subsystem for this track stub is out of range"
       << std::endl;
   }
   return -1;
 }
 
-void TriggerPrimitive::calculateDTGlobalSector(const DTChamberId& chid, 
-					       unsigned& global_sector, 
+void TriggerPrimitive::calculateDTGlobalSector(const DTChamberId& chid,
+					       unsigned& global_sector,
 					       unsigned& subsector ) {
 }
 
-void TriggerPrimitive::calculateCSCGlobalSector(const CSCDetId& chid, 
-						unsigned& global_sector, 
+void TriggerPrimitive::calculateCSCGlobalSector(const CSCDetId& chid,
+						unsigned& global_sector,
 						unsigned& subsector ) {
 }
 
-void TriggerPrimitive::calculateRPCGlobalSector(const RPCDetId& chid, 
-						unsigned& global_sector, 
+void TriggerPrimitive::calculateRPCGlobalSector(const RPCDetId& chid,
+						unsigned& global_sector,
 						unsigned& subsector ) {
 }
 
 void TriggerPrimitive::print(std::ostream& out) const {
   unsigned idx = (unsigned) _subsystem;
   out << subsystem_names[idx] << " Trigger Primitive" << std::endl;
-  out << "eta: " << _eta << " phi: " << _phi 
+  out << "eta: " << _eta << " phi: " << _phi
       << " bend: " << _theta << std::endl;
   switch(_subsystem) {
   case kDT:
@@ -317,8 +332,8 @@ void TriggerPrimitive::print(std::ostream& out) const {
     out << "Layer         : " << _rpc.layer << std::endl;
     break;
   default:
-    throw cms::Exception("Invalid Subsytem") 
+    throw cms::Exception("Invalid Subsytem")
       << "The specified subsystem for this track stub is out of range"
       << std::endl;
-  }     
+  }
 }

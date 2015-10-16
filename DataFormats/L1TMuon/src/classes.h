@@ -19,6 +19,14 @@
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 
+
+#include "DataFormats/L1TMuon/interface/MBLTCollection.h"
+#include "DataFormats/L1TMuon/interface/MBLTCollectionFwd.h"
+//#include "DataFormats/L1TMuon/interface/MBTrack.h"
+//#include "DataFormats/L1TMuon/interface/MBTrackFwd.h"
+
+
+
 namespace {
   using namespace L1TMuon;
   struct dictionary {
@@ -67,6 +75,39 @@ namespace {
 
     CandidateTrackRef rcctk;
     CandidateTrackPtr pcctk;
+
+
+    // subdetector tracks
+    MBLTCollection dss;
+    edm::Wrapper<MBLTCollection> wdss;
+
+    MBLTContainerPair pdss;
+    edm::Wrapper<MBLTContainerPair> wpdss;
+
+    MBLTContainer mdss;
+    edm::Wrapper<MBLTContainer> wmdss;
+
+    MBLTContainerRef rmdss;
+    edm::Wrapper<MBLTContainerRef> rwdvss;
+
+    MBLTContainerRefPair rpmdss;
+    edm::Wrapper<MBLTContainerRefPair> rwpmdss;
+
+    MBLTVectorRef rmvss;
+    edm::Wrapper<MBLTVectorRef> rwmvss;
+
+    MBLTCollection::primitiveAssociation sspa;
+    edm::Wrapper<MBLTCollection::primitiveAssociation> wsspa;
+
+    std::vector<MBLTCollection::primitiveAssociation> vsspa;
+    edm::Wrapper<std::vector<MBLTCollection::primitiveAssociation> > wvsspa;
+
+    //MBTrack mtss;
+    //edm::Wrapper<MBTrack> wmtss;
+
+    //MBTrackCollection mtcss;
+    //edm::Wrapper<MBTrackCollection> wmtcss;
+
 
     // regional muon system tracks removed from their containers
     // so we can save references to them
