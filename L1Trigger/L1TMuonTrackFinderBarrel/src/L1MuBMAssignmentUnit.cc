@@ -402,7 +402,7 @@ PtAssMethod L1MuBMAssignmentUnit::getPtMethod() const {
   if ( !s.test(0) &&  s.test(1) && s.test(2) ) method = 3; // stations 2 and 3
   if ( !s.test(0) && !s.test(1) && s.test(2) && s.test(3) ) method = 5; // stations 3 and 4
 
-  if ( m_sp.ovl() ) {
+  /*if ( m_sp.ovl() ) {
     int adr = m_addArray.station(3);
     bool s5 = (adr == 15) ? false : ((adr/2)%2 == 1);
     if (  s.test(0) &&  s.test(3) ) method = 8;  // stations 1 and 4
@@ -413,7 +413,7 @@ PtAssMethod L1MuBMAssignmentUnit::getPtMethod() const {
     if ( !s.test(0) &&  s.test(1) && s.test(2) &&  s5 ) method = 13; // stations 2 and 5
     if ( !s.test(0) &&  s.test(1) && s.test(2) && !s5 ) method = 9;  // stations 2 and 3
     if ( !s.test(0) && !s.test(1) && s.test(2) &&  s.test(3) ) method = 11; // stations 3 and 4
-  }
+  }*/
 
   int threshold = thePtaLUTs->getPtLutThreshold(method);
 

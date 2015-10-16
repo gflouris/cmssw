@@ -217,7 +217,7 @@ void L1MuBMEtaProcessor::receiveData(int bx, const edm::Event& e, const edm::Eve
   c.get< L1MuDTTFMasksRcd >().get( msks );
 
   edm::Handle<L1MuDTChambThContainer> dttrig;
-  e.getByLabel(L1MuBMTFConfig::getBMDigiInputTag(),dttrig);
+  e.getByLabel(L1MuBMTFConfig::getBMThetaDigiInputTag(),dttrig);
 
   // const int bx_offset = dttrig->correctBX();
   int bx_offset=0;

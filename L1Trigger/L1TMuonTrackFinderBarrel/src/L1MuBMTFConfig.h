@@ -45,6 +45,8 @@ class L1MuBMTFConfig {
     virtual ~L1MuBMTFConfig();
 
     static edm::InputTag getBMDigiInputTag() { return m_BMDigiInputTag; }
+    static edm::InputTag getBMThetaDigiInputTag() { return m_BMThetaDigiInputTag; }
+
     //static edm::InputTag getCSCTrSInputTag() { return m_CSCTrSInputTag; }
 
     static bool Debug() { return m_debug; }
@@ -77,6 +79,8 @@ class L1MuBMTFConfig {
     const edm::ParameterSet* m_ps;
 
     static edm::InputTag m_BMDigiInputTag;
+    static edm::InputTag m_BMThetaDigiInputTag;
+
     //static edm::InputTag m_CSCTrSInputTag;
 
     static bool   m_debug;             // debug flag

@@ -6,4 +6,4 @@
 <use   name="CondFormats/DataRecord"/>
 <use   name="DataFormats/L1GlobalMuonTrigger"/>
 <use   name="DataFormats/L1TMuon"/>
-
+<use   naem="L1Trigger/L1TMuonTrackFinderEndCap"/>

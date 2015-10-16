@@ -60,6 +60,8 @@ L1MuBMTFConfig::~L1MuBMTFConfig() {}
 void L1MuBMTFConfig::setDefaults() {
 
   m_BMDigiInputTag = m_ps->getParameter<edm::InputTag>("DTDigi_Source");
+  m_BMThetaDigiInputTag = m_ps->getParameter<edm::InputTag>("DTDigi_Theta_Source");
+
   //m_CSCTrSInputTag = m_ps->getParameter<edm::InputTag>("CSCStub_Source");
 
   m_debug = true;
@@ -168,6 +170,7 @@ void L1MuBMTFConfig::setDefaults() {
 // static data members
 
 edm::InputTag L1MuBMTFConfig::m_BMDigiInputTag = edm::InputTag();
+edm::InputTag L1MuBMTFConfig::m_BMThetaDigiInputTag = edm::InputTag();
 //edm::InputTag L1MuBMTFConfig::m_CSCTrSInputTag = edm::InputTag();
 
 bool L1MuBMTFConfig::m_debug = false;
