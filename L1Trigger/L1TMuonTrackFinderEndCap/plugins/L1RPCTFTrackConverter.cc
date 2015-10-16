@@ -27,6 +27,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include <FWCore/Framework/interface/ConsumesCollector.h>
 
 using namespace L1TMuon;
 
@@ -46,6 +47,12 @@ L1RPCTFTrackConverter::L1RPCTFTrackConverter(const PSet& ps):
   _rpcTrackSrc(ps.getParameter<edm::InputTag>("RPCTrackSrc")),
   _rpcL1LinkSrc(ps.getParameter<edm::InputTag>("RPCL1LinkSrc")),
   _trigPrimSrc(ps.getParameter<edm::InputTag>("TriggerPrimitiveSrc")) {
+
+  consumes<RegionalCandCollection>(ps.getParameter<edm::InputTag>("RPCTrackSrc"));
+  consumes<std::vector<RPCDigiL1Link> >(ps.getParameter<edm::InputTag>("RPCL1LinkSrc"));
+  consumes<TriggerPrimitiveCollection>(ps.getParameter<edm::InputTag>("TriggerPrimitiveSrc"));
+ 
+
   produces<RegionalCandCollection>("input");
   produces<RPCL1LinkCollection>("input");
   produces<InternalTrackCollection>();

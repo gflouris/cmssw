@@ -25,6 +25,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include <FWCore/Framework/interface/ConsumesCollector.h>
 
 #include "L1Trigger/L1TMuonTrackFinderEndCap/interface/helpers.h"
 
@@ -51,6 +52,10 @@ L1DTTFTrackConverter::L1DTTFTrackConverter(const PSet& ps):
   _trigPrimSrc(ps.getParameter<edm::InputTag>("TriggerPrimitiveSrc")),
   min_bx(ps.getParameter<int>("BX_min")),
   max_bx(ps.getParameter<int>("BX_max")) {
+
+  consumes<L1MuDTTrackContainer>(ps.getParameter<edm::InputTag>("DTTrackSrc"));
+  consumes<TriggerPrimitiveCollection>(ps.getParameter<edm::InputTag>("TriggerPrimitiveSrc"));
+
   produces<DTTrackCollection>("input");
   produces<InternalTrackCollection>();
 }
