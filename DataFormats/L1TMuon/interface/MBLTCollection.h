@@ -8,6 +8,7 @@
 //       built.
 //
 // Author:
+// Carlo Battilana - Giuseppe Codispoti
 //
 
 #include <iostream>

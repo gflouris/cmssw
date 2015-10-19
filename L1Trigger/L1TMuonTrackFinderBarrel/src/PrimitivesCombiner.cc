@@ -1,3 +1,5 @@
+//Author: Giuseppe Codispoti
+
 #include "L1Trigger/L1TMuonTrackFinderBarrel/interface/PrimitiveCombiner.h"
 #include "DataFormats/L1TMuon/interface/MuonTriggerPrimitive.h"
 

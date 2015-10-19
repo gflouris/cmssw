@@ -1,3 +1,6 @@
+//Authors:
+// Carlo Battilana - Giuseppe Codispoti
+
 #include "DataFormats/L1TMuon/interface/MBLTCollection.h"
 
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"

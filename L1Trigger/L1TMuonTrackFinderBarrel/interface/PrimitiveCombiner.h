@@ -6,7 +6,7 @@
 // Info: This class combine information from DT and/or RPC primitives
 //       in order to calculate better phi/phiBending
 //
-// Author:
+// Author: Giuseppe Codispoti
 //
 
 #include "FWCore/Framework/interface/ESHandle.h"

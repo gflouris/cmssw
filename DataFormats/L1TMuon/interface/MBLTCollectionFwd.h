@@ -1,3 +1,6 @@
+//Authors:
+// Carlo Battilana - Giuseppe Codispoti
+
 #ifndef __L1ITMU_MBLTCollection_H__
 #define __L1ITMU_MBLTCollection_H__
 

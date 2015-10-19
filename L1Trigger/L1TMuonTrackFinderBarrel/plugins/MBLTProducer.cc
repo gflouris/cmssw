@@ -1,4 +1,5 @@
-
+//Authors:
+// Carlo Battilana - Giuseppe Codispoti
 // framework include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
