@@ -76,7 +76,13 @@ L1MuBMSectorReceiver::~L1MuBMSectorReceiver() {
 void L1MuBMSectorReceiver::run(int bx, const edm::Event& e, const edm::EventSetup& c) {
 
   c.get< L1MuDTTFParametersRcd >().get( pars );
-  c.get< L1MuDTTFMasksRcd >().get( msks );
+  //c.get< L1MuDTTFMasksRcd >().get( msks );
+
+  const L1TMuonBarrelParamsRcd& bmtfParamsRcd = c.get<L1TMuonBarrelParamsRcd>();
+  bmtfParamsRcd.get(bmtfParamsHandle);
+  const L1TMuonBarrelParams& bmtfParams = *bmtfParamsHandle.product();
+  msks =  bmtfParams.l1mudttfmasks;
+  //msks.print();
 
   // get track segments from BBMX chamber trigger
   receiveBBMXData(bx, e, c);
@@ -118,6 +124,8 @@ void L1MuBMSectorReceiver::receiveBBMXData(int bx, const edm::Event& e, const ed
       //if ( m_sp.ovl() && (reladr/2)%2 != 0 ) continue;
       int wheel  = address2wheel(reladr);
       int sector = address2sector(reladr);
+      //if ( (wheel==2 || wheel==-2) && station==1 ) continue;
+
       if ( reladr%2 == 0 ) ts = dttrig->chPhiSegm1(wheel,station,sector,bx);
       if ( reladr%2 == 1 ) ts = dttrig->chPhiSegm2(wheel,station,sector,bx);
       if ( ts ) {
@@ -130,19 +138,19 @@ void L1MuBMSectorReceiver::receiveBBMXData(int bx, const edm::Event& e, const ed
         lwheel = abs(lwheel)/lwheel*(abs(wheel)+1);
 
         if ( station == 1 ) {
-          if ( msks->get_inrec_chdis_st1(lwheel, sector) ) continue;
+          if ( msks.get_inrec_chdis_st1(lwheel, sector) ) continue;
           if ( qual < pars->get_inrec_qual_st1(lwheel, sector) ) continue;
         }
         else if ( station == 2 ) {
-          if ( msks->get_inrec_chdis_st2(lwheel, sector) ) continue;
+          if ( msks.get_inrec_chdis_st2(lwheel, sector) ) continue;
           if ( qual < pars->get_inrec_qual_st2(lwheel, sector) ) continue;
           }
         else if ( station == 3 ) {
-          if ( msks->get_inrec_chdis_st3(lwheel, sector) ) continue;
+          if ( msks.get_inrec_chdis_st3(lwheel, sector) ) continue;
           if ( qual < pars->get_inrec_qual_st3(lwheel, sector) ) continue;
         }
         else if ( station == 4 ) {
-          if ( msks->get_inrec_chdis_st4(lwheel, sector) ) continue;
+          if ( msks.get_inrec_chdis_st4(lwheel, sector) ) continue;
           if ( qual < pars->get_inrec_qual_st4(lwheel, sector) ) continue;
         }
 
@@ -262,7 +270,7 @@ void L1MuBMSectorReceiver::receiveCSCData(int bx, const edm::Event& e, const edm
     if ( phi > 2047 ) phi -= 4096;
     if ( phi < -2048 || phi > 2047 ) continue;
 
-    if ( msks->get_inrec_chdis_csc(m_sp.id().wheel(), m_sp.id().sector()) ) continue;
+    if ( msks.get_inrec_chdis_csc(m_sp.id().wheel(), m_sp.id().sector()) ) continue;
     if ( qual < pars->get_soc_qual_csc(m_sp.id().wheel(), m_sp.id().sector()) ) continue;
     if ( pars->get_soc_csc_etacanc(m_sp.id().wheel(), m_sp.id().sector()) && etaFlag ) continue;
     if ( L1MuBMTFConfig::getEtaCanc() && etaFlag ) continue;
