@@ -272,12 +272,12 @@ void L1MuBMAssignmentUnit::QuaAU() {
     case T124  : { quality = 2; break; }
     case T134  : { quality = 2; break; }
     case T234  : { quality = 2; break; }
-    case T12   : { quality = 0; break; }
+    case T12   : { quality = 1; break; }
     case T13   : { quality = 1; break; }
     case T14   : { quality = 1; break; }
-    case T23   : { quality = 1; break; }
-    case T24   : { quality = 1; break; }
-    case T34   : { quality = 1; break; }
+    case T23   : { quality = 0; break; }
+    case T24   : { quality = 0; break; }
+    case T34   : { quality = 0; break; }
     default    : { quality = 0; break; }
   }
 
