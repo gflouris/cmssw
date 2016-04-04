@@ -51,6 +51,7 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonGlobalParams.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonBarrelParams.h"
+#include "CondFormats/L1TObjects/interface/L1TwinMuxParams.h"
 
 #include "CondFormats/L1TObjects/interface/L1TUtmAlgorithm.h"
 #include "CondFormats/L1TObjects/interface/L1TUtmBin.h"
