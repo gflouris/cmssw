@@ -87,14 +87,14 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         
                 }
             }
-            for(unsigned int l1=0; l1<vrpc_hit_st34.size(); l1++){
+            /*for(unsigned int l1=0; l1<vrpc_hit_st34.size(); l1++){
                         
                         if(vrpc_hit_st34[l1].station==1 || vrpc_hit_st34[l1].station==2 ) continue;
                         int phi1 = radialAngle(vrpc_hit_st34[l1].detid, c, vrpc_hit_st34[l1].strip) ;
 
                         L1MuDTChambPhDigi rpc2dt_out( 0, wh, sec-1, st, phi1, 0, 3, 0, 0, 1);
                         l1ttma_out.push_back(rpc2dt_out);
-            }
+            }*/
             if(found_hits){
                 int min_index = std::distance(delta_phib.begin(), std::min_element(delta_phib.begin(), delta_phib.end())) + 0;
                 L1MuDTChambPhDigi rpc2dt_out( 0, wh, sec-1, st, rpc2dt_phi[min_index], rpc2dt_phib[min_index], 3, 0, 0, 1);

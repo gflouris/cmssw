@@ -52,6 +52,7 @@ for (wheel=-3;wheel<=3; wheel++ ){
 
         for(bx=-1; bx<=1; bx++){
           //for(bxrpc=-1; bxrpc<=1; bxrpc++){
+            dtts1=0; dtts2=0; rpcts1=0;
 
             dtts1 = phiDTDigis.chPhiSegm1(wheel,station,sector,bx);
             rpcts1 = phiRPCDigis.chPhiSegm1(wheel, station, sector, 0);
