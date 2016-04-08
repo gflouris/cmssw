@@ -21,6 +21,7 @@
 #include "L1Trigger/L1TwinMux/interface/AlignTrackSegments.h"
 #include "L1Trigger/L1TwinMux/interface/RPCtoDTTranslator.h"
 #include "L1Trigger/L1TwinMux/interface/DTRPCBxCorrection.h"
+#include "L1Trigger/L1TwinMux/interface/RPCHitCleaner.h"
 
 using namespace std;
 
@@ -43,8 +44,15 @@ void L1TwinMuxAlgortithm::run(
   L1MuDTChambPhContainer phiDigis = alignedDTs->getDTContainer();
   //_tm_phi_output = phiDigis; //only DTs
 
+
+  ///Clean RPC hits.
+  RPCHitCleaner *rpcHitCl = new RPCHitCleaner(*rpcDigis);
+  rpcHitCl->run(c);
+  RPCDigiCollection rpcDigisCleaned = rpcHitCl->getRPCCollection();
+
   ///Translate RPC digis to DT primitives.
-  RPCtoDTTranslator *dt_from_rpc = new RPCtoDTTranslator(*rpcDigis);
+  //RPCtoDTTranslator *dt_from_rpc = new RPCtoDTTranslator(*rpcDigis);
+  RPCtoDTTranslator *dt_from_rpc = new RPCtoDTTranslator(rpcDigisCleaned);
   dt_from_rpc->run(c);
   L1MuDTChambPhContainer rpcPhiDigis = dt_from_rpc->getDTContainer();
   //_tm_phi_output = rpcPhiDigis; //only RPCs
