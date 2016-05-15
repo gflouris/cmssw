@@ -245,8 +245,8 @@ void L1MuBMEtaProcessor::receiveData(int bx, const edm::Event& e, const edm::Eve
 
       if ( tseta && !masked ) {
 
-        if ( wheel == -2 || wheel == -1 ||
-             ( wheel == 0 && (sector == 0 || sector == 3 || sector == 4 || sector == 7 || sector == 8 || sector == 11) ) ) {
+        if ( wheel == 2 || wheel == 1 ||
+             ( wheel == 0 && (sector == 1 || sector == 2 || sector == 5 || sector == 6 || sector == 9 || sector == 10) ) ) {
           for ( int i = 0; i < 7; i++ ) {
             if ( tseta->position(i) ) pos.set(6-i);
             if ( tseta->quality(i) ) qual.set(6-i);
