@@ -38,8 +38,8 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    verbose = cms.untracked.bool(True)
 )
 
-process.fakeTwinMuxParams.verbose = cms.bool(False)
-process.fakeTwinMuxParams.useOnlyRPC = cms.bool(True)
+#process.fakeTwinMuxParams.verbose = cms.bool(False)
+#process.fakeTwinMuxParams.useOnlyRPC = cms.bool(True)
 
 
 ###TwinMux Emulator
