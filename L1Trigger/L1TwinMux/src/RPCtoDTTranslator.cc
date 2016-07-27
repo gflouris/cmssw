@@ -68,14 +68,15 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
                         int phi1 = radialAngle(vrpc_hit_layer1[l1].detid, c, vrpc_hit_layer1[l1].strip) ;
                         int phi2 = radialAngle(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip) ;
-                        int average = ( (phi1 + phi2)/2 );
-                        rpc2dt_phi.push_back(average<<2);
+                        int average = ( (phi1 + phi2)/2 ); //10-bit
+                        rpc2dt_phi.push_back(average<<2);  //Convert and store to 12-bit
 
                         int x1 = localX(vrpc_hit_layer1[l1].detid, c, vrpc_hit_layer1[l1].strip);
                         int x2 = -localX(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip);
-                        
-                        float phi_diff = phi2 - phi1;
-                        int phi_b = bendingAngle(x1,x2,phi_diff);
+                                          
+                        //average = phi2 - phi1;
+
+                        int phi_b = bendingAngle(x1,x2,average);
                         rpc2dt_phib.push_back(phi_b);
                         ///delta_phib to find the highest pt primitve
                         delta_phib.push_back(abs(phi_b));
@@ -143,22 +144,10 @@ int RPCtoDTTranslator::localX(RPCDetId detid, const edm::EventSetup& c, int stri
     c.get<MuonGeometryRecord>().get(rpcGeometry);
 
     const RPCRoll* roll = rpcGeometry->roll(detid);
-    //cout<<"Local X Function "<<endl;
-    //cout<<"strip = "<<strip<<"centreOfStrip = "<<roll->centreOfStrip(strip)<<endl;
-    // GlobalPoint stripPosition = roll->toGlobal(roll->centreOfStrip(strip));
-    // cout<<"GlobalPoint = "<< stripPosition<<endl;
-    // LocalPoint  stripPositionlocal = roll->toLocal(stripPosition);
-    // cout<<"LocalPoint = "<< stripPositionlocal<<endl;
-    // cout<<roll->centreOfStrip(strip).x()<<endl;
-    //return stripPositionlocal.x() / 2; 
-    //cout<<"x = "<<stripPosition.x()<< "\t y = "<<stripPosition.y()<<"\t R = "<<sqrt(stripPosition.x()*stripPosition.x() + stripPosition.y()*stripPosition.y())<<endl;
-    //return sqrt(stripPosition.x()*stripPosition.x() + stripPosition.y()*stripPosition.y());
     return roll->centreOfStrip(strip).x()/2.;
 }
 
-int RPCtoDTTranslator::bendingAngle(int x1, int x2, int phi_diff){   
-    float A =( (atan(x2-x1)/17.) / (2*3.1415926) ) * 512.;
-    //cout<<"A = "<<A<<endl;
-    //cout<<"B = "<<phi<<endl;
-    return A - phi_diff;
+int RPCtoDTTranslator::bendingAngle(int x1, int x2, int phi){   
+    float A = (atan((x1-x2)/(2.*17.))/ (2*3.1415926))  * 512.;
+    return A - phi;
 }
