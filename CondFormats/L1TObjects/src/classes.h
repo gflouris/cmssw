@@ -26,8 +26,6 @@
 #include "CondFormats/L1TObjects/interface/L1CaloHcalScale.h"
 #include "CondFormats/L1TObjects/interface/L1TriggerKey.h"
 #include "CondFormats/L1TObjects/interface/L1TriggerKeyList.h"
-#include "CondFormats/L1TObjects/interface/L1TriggerKeyExt.h"
-#include "CondFormats/L1TObjects/interface/L1TriggerKeyListExt.h"
 
 #include "CondFormats/L1TObjects/interface/L1GtStableParameters.h"
 #include "CondFormats/L1TObjects/interface/L1GtParameters.h"
@@ -53,6 +51,7 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonGlobalParams.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonBarrelParams.h"
+#include "CondFormats/L1TObjects/interface/L1TwinMuxParams.h"
 
 #include "CondFormats/L1TObjects/interface/L1TGlobalParameters.h"
 #include "CondFormats/L1TObjects/interface/L1TUtmAlgorithm.h"
@@ -102,6 +101,9 @@ namespace CondFormats_L1TObjects {
 
     L1TMuonBarrelParams dummy18;
     std::vector<L1TMuonBarrelParams::Node> dummy18a;
+
+    L1TwinMuxParams dummy18_a;
+    std::vector<L1TwinMuxParams::Node> dummy18a_a;
 
     L1TUtmAlgorithm dummy19a;
     L1TUtmBin dummy19b;

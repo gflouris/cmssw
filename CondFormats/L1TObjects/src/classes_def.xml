@@ -62,6 +62,16 @@
     <field name="eta_lut_" mapping="blob"/>
     <field name="ext_lut_" mapping="blob"/>
   </class>
+  <class name="std::vector<L1TwinMuxParams::Node>"/>
+  <class name="L1TwinMuxParams">
+    <field name="pnodes_" mapping="blob"/>
+  </class>
+  <class name="L1TwinMuxParams::Node">
+    <field name="dparams_" mapping="blob"/>
+    <field name="iparams_" mapping="blob"/>
+    <field name="sparams_" mapping="blob"/>
+    <field name="uparams_" mapping="blob"/>
+  </class>
   <class name="L1MuScale"/>
   <class name="L1MuBinnedScale">
     <field name="m_Scale" mapping="blob" />
@@ -144,16 +154,9 @@
   <class name="L1TriggerKey">
     <field name="m_recordToKey" mapping="blob" />
   </class>
-  <class name="L1TriggerKeyExt">
-      <field name="m_recordToKey" mapping="blob" />
-  </class>
   <class name="L1TriggerKeyList">
     <field name="m_recordKeyToken" mapping="blob" />
     <field name="m_tscKeyToToken" mapping="blob" />
-  </class>
-  <class name="L1TriggerKeyListExt">
-      <field name="m_recordKeyToken" mapping="blob" />
-      <field name="m_tscKeyToToken" mapping="blob" />
   </class>
   <class name="L1RCTParameters">
     <field name="HoverE_smear_high_" mapping="blob" />
