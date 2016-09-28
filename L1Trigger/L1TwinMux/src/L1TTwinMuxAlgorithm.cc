@@ -39,17 +39,21 @@ void L1TwinMuxAlgortithm::run(
   const L1TwinMuxParams& tmParams = *tmParamsHandle.product();
   bool onlyRPC = tmParams.get_UseOnlyRPC();
   bool onlyDT = tmParams.get_UseOnlyDT();
+  bool correctBX = tmParams.get_CorrectDTBxwRPC();
   bool verbose = tmParams.get_Verbose();
 
 
 
   ///Align track segments that are coming in bx-1.
-  //cout<<"DT Inputs"<<endl;
   AlignTrackSegments *alignedDTs = new AlignTrackSegments(*inphiDigis);
   alignedDTs->run(c);
   L1MuDTChambPhContainer phiDigis = alignedDTs->getDTContainer();
-  //_tm_phi_output = phiDigis; //only DTs
-
+  //if only DTs are required without bx correction
+  //return the aligned track segments
+  if(onlyDT && !correctBX) {
+    m_tm_phi_output = phiDigis;
+    return;
+  }
 
   ///Clean RPC hits.
   RPCHitCleaner *rpcHitCl = new RPCHitCleaner(*rpcDigis);
@@ -57,18 +61,15 @@ void L1TwinMuxAlgortithm::run(
   RPCDigiCollection rpcDigisCleaned = rpcHitCl->getRPCCollection();
 
   ///Translate RPC digis to DT primitives.
-  //RPCtoDTTranslator *dt_from_rpc = new RPCtoDTTranslator(*rpcDigis);
   RPCtoDTTranslator *dt_from_rpc = new RPCtoDTTranslator(rpcDigisCleaned);
   dt_from_rpc->run(c);
   L1MuDTChambPhContainer rpcPhiDigis = dt_from_rpc->getDTContainer();
   L1MuDTChambPhContainer rpcHitsPhiDigis = dt_from_rpc->getDTRPCHitsContainer();
 
-  //_tm_phi_output = rpcPhiDigis; //only RPCs
 
   ///Correct(in bx) DT primitives by comparing them to RPC.
   DTRPCBxCorrection *rpc_dt_bx = new DTRPCBxCorrection(phiDigis,rpcHitsPhiDigis);
   rpc_dt_bx->run(c);
-  //_tm_phi_output = phiDigis; //only DT corrected with RPCs
 
   L1MuDTChambPhContainer phiDigiscp = rpc_dt_bx->getDTContainer();
 
@@ -90,9 +91,7 @@ void L1TwinMuxAlgortithm::run(
 
           dtts1 = phiDigiscp.chPhiSegm(wheel,station,sector,bx,0);
           dtts2 = phiDigiscp.chPhiSegm(wheel,station,sector,bx,1 );
-          rpcts1 = rpcPhiDigis.chPhiSegm1(wheel,station,sector,bx);
-          //if(dtts1 &&wheel==-1&&sector==9&&station==3)  cout<<dtts1<<"   "<<dtts1->bxNum()<<" "<<dtts1->code()<<"  "<<dtts1->phi()<<endl;  
-	  
+          rpcts1 = rpcPhiDigis.chPhiSegm1(wheel,station,sector,bx);	  
 
             if(!onlyRPC) {
               if(!dtts1 && !dtts2 && !rpcts1 ) continue;
@@ -132,7 +131,7 @@ m_tm_phi_output.setContainer(l1ttma_out);
   if(verbose){
      IOPrinter ioPrinter;
      cout<<"======DT========"<<endl;
-     ioPrinter.run(inphiDigis, m_tm_phi_output, &rpcDigisCleaned, c);
+     ioPrinter.run(inphiDigis, m_tm_phi_output, rpcDigis, c);
      cout<<"======RPC========"<<endl;
      ioPrinter.run(&rpcHitsPhiDigis, m_tm_phi_output, &rpcDigisCleaned, c);
      cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++"<<endl;

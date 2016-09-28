@@ -13,7 +13,7 @@
 void IOPrinter::run(
                                                             edm::Handle<L1MuDTChambPhContainer> inphiDigis,
                                                             L1MuDTChambPhContainer outphiDigis,
-                                                            RPCDigiCollection* rpcDigis,
+                                                            edm::Handle<RPCDigiCollection> rpcDigis,
                                                             const edm::EventSetup& c) {
 
     cout<<"======================================================"<<endl;

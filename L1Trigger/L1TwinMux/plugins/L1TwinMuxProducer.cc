@@ -32,6 +32,8 @@ public:
 private:
   L1TwinMuxAlgortithm * m_l1tma;
   edm::EDGetToken m_dtdigi, m_dtthetadigi, m_rpcsource;
+  ///Event Setup Handler
+  edm::ESHandle< L1TwinMuxParams > tmParamsHandle;
 
 };
 
@@ -51,6 +53,18 @@ produces<L1MuDTChambPhContainer>("TwinMuxEmulator");
 
 void L1TwinMuxProducer::produce(edm::Event& e, const edm::EventSetup& c) {
 
+
+  ///Check consistency of the paramters
+  const L1TwinMuxParamsRcd& tmParamsRcd = c.get<L1TwinMuxParamsRcd>();
+  tmParamsRcd.get(tmParamsHandle);
+  const L1TwinMuxParams& tmParams = *tmParamsHandle.product();
+
+  bool onlyRPC = tmParams.get_UseOnlyRPC();
+  bool onlyDT = tmParams.get_UseOnlyDT();
+
+  if(onlyDT && onlyRPC) {cout<<"TWINMUX:: Inconsistent parameters onlyRPC and onlyDT. "<<endl; return;}
+  ///---Check consistency of the paramters
+
   edm::Handle<L1MuDTChambPhContainer> phiDigis;
   edm::Handle<L1MuDTChambThContainer> thetaDigis;
   e.getByToken(m_dtdigi, phiDigis);
@@ -60,11 +74,10 @@ void L1TwinMuxProducer::produce(edm::Event& e, const edm::EventSetup& c) {
   e.getByToken(m_rpcsource, rpcDigis);
 
   if (! phiDigis.isValid()){
-    cout << "ERROR:  TwinMux input DT phi digis not valid.\n";
+    cout << "TwinMux input DT phi digis not valid.\n";
   }
-  if (! thetaDigis.isValid()){
-     cout << "ERROR:  TwinMux input DT theta digis not valid.\n";
-  }
+
+
 
   std::auto_ptr<L1MuDTChambPhContainer> l1ttmp(new L1MuDTChambPhContainer);
   m_l1tma->run(phiDigis, thetaDigis, rpcDigis,c);

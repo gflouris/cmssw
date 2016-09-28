@@ -55,10 +55,14 @@ void DTRPCBxCorrection::BxCorrection(int track_seg){
 for (wheel=-2;wheel<=2; wheel++ ){
     for (sector=0;sector<12; sector++ ){
      for (station=1; station<=4; station++){
-        vector<int> delta_m, delta_p, delta_0;
         //ibx_dt = 0, fbx_dt = 0; 
+    bool shifted[7] = {false, false, false, false,false, false, false};
+    bool dups[7] = {false, false, false, false,false, false, false};
+    L1MuDTChambPhContainer shiftedPhiDTDigis;
 
         for(bx=-3; bx<=3; bx++){
+        vector<int> delta_m, delta_p, delta_0;
+
           for(int rpcbx=bx-1; rpcbx<=bx+1; rpcbx++){
             dtts=0; rpcts1=0; dttsnew = 0;
             dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,bx ,track_seg);
@@ -76,16 +80,16 @@ for (wheel=-2;wheel<=2; wheel++ ){
 		           if((dtts->bxNum()-rpcbx)==-1  ) {
 		             delta_m.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) ); 
                  ibx_dtm = dtts->bxNum(); fbx_dtm = rpcbx; 
-                 //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
+                 //cout<<bx<<"\t"<<rpcbx<<"\t"<<dtts->phi()<<endl;
                }
              
-               if((dtts->bxNum()-rpcbx)==0)  {
+               if((dtts->bxNum()-rpcbx)==0 )  {
 		              delta_0.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) ); 
                   //ibx_dt = dtts->bxNum(); fbx_dt = rpcbx; 
                   //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
                }
 
-               if((dtts->bxNum()-rpcbx)==1)  {
+               if((dtts->bxNum()-rpcbx)==1 )  {
 	               delta_p.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) ); 
       		       ibx_dtp = dtts->bxNum(); fbx_dtp = rpcbx;
                  //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
@@ -93,13 +97,9 @@ for (wheel=-2;wheel<=2; wheel++ ){
               }//end if dtts and quality
             }
         }//end of rpc bx
-    }//end of bx
 
-    bool shifted[7] = {false, false, false, false,false, false, false};
-    bool dups[7] = {false, false, false, false,false, false, false};
 
     vector<int> delta = concat_delta(delta_0, delta_p, delta_m);
-    L1MuDTChambPhContainer shiftedPhiDTDigis;
 
     if(delta.size() != 0){
     L1MuDTChambPhDigi *dtts_sh = 0;
@@ -107,37 +107,13 @@ for (wheel=-2;wheel<=2; wheel++ ){
 
      unsigned int min_index = std::distance(delta.begin(), std::min_element(delta.begin(), delta.end())) + 0;
      //cout<<delta_0.size()<<"\t"<<delta_p.size()<<"\t"<<delta_m.size()<<"\t"<<min_index<<"\t"<<wheel<<"\t"<<sector<<endl;
-     
-     // if (delta_0.size()!=0) {
-
-     //  dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dt,track_seg);
-
-     //  dtts_sh = new L1MuDTChambPhDigi( dtts->bxNum() , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt());
-     //  l1ttma_out.push_back(*dtts_sh);
-
-     //  // if(delta_p.size()!=0){
-     //  //     dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,1);
-
-     //  //   L1MuDTChambPhDigi shifted_out1( dtts->bxNum() , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt());
-     //  //   l1ttma_out.push_back(shifted_out1);
-     //  // }
-
-     //  // if(delta_m.size()!=0){
-     //  //   if(track_seg==1)     
-     //  //     dtts = m_phiDTDigis.chPhiSegm1(wheel,station,sector,-1);
-     //  //   else
-     //  //     dtts = m_phiDTDigis.chPhiSegm2(wheel,station,sector,-1-1);
-        
-     //  //   L1MuDTChambPhDigi shifted_out1( dtts->bxNum() , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt());
-     //  //   l1ttma_out.push_back(shifted_out1);
-     //  // }
-     // }//cout<<"No Shift"<<endl;
-
+     ////do not concat....find the minimum for each vector then compare
 
       //if ( delta_0.size() ==0 &&  ((delta_0.size() <= min_index) && ( min_index < delta_p.size() ) && delta_p.size()!=0 ) ) {
-      if ( ((delta_0.size() <= min_index) && ( min_index < delta_p.size() ) && delta_p.size()!=0 ) ) {        
+      if ( ((delta_0.size() <= min_index) && ( min_index < (delta_0.size() + delta_p.size()) ) && delta_p.size()!=0 ) ) {        
         dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtp,track_seg);
         dttsnew = m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,track_seg);
+        //cout<<"deltap"<<ibx_dtm<<"\t"<<fbx_dtm<<"\t"<<dtts->phi()<<endl;
 
       if(dtts && dtts->code()<m_QualityLimit && !dttsnew ) {
       dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtp,track_seg);
@@ -150,23 +126,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
      if(dtts && dtts->code()<m_QualityLimit && dttsnew && ibx_dtp!=0) dups[ibx_dtp+3] = true; 
 
      }
-//     //else if ( delta_0.size() ==0 &&  delta_p.size() <= min_index  && delta_m.size()!=0 && !dttsnew ) {
-     // else if ( delta_p.size() <= min_index  && delta_m.size()!=0 && !dttsnew ) {
-     //  cout<<"if delta_m"<<endl;
-     //    dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dt,track_seg);
-     //    dtts_sh = new L1MuDTChambPhDigi( fbx_dt , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),1);
-     //    l1ttma_outsh.push_back(*dtts_sh); 
-     //    shifted[ibx_dt+3] = true;
-
-     //  ///No shift if dt qulity gt qulitycut
-     //  if(dtts && dtts->code()>m_QualityLimit) {
-     //      dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dt,track_seg);
-     //      dtts_sh = new L1MuDTChambPhDigi( dtts->bxNum() , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),0);
-     //      l1ttma_outsh.push_back(*dtts_sh);
-
-     //  }
-     // }
-          else if ( delta_p.size() <= min_index  && delta_m.size()!=0  ) {
+          else if ( (delta_0.size() + delta_p.size()) <= min_index  && delta_m.size()!=0  ) {
 
         // dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dt,track_seg);
         // dtts_sh = new L1MuDTChambPhDigi( fbx_dt , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),1);
@@ -193,6 +153,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
 
      shiftedPhiDTDigis.setContainer(l1ttma_outsh);
    }
+    }//end of bx
 
       for(int bx=-3; bx<=3; bx++){
         L1MuDTChambPhDigi * dtts=0;

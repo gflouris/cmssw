@@ -36,20 +36,23 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
   std::vector<rpc_hit> vrpc_hit_layer1, vrpc_hit_layer2, vrpc_hit_st3, vrpc_hit_st4;
 
+  int max_rpc_bx = 2; int min_rpc_bx = -2;
+
+    ///Init structues
 	for( auto chamber = m_rpcDigis.begin(); chamber != m_rpcDigis.end(); ++chamber ) {
 
            RPCDetId detid = (*chamber).first;
 
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
                    if(detid.region()!=0 ) continue; //Region = 0 Barrel
-                   if(digi->bx()>3 || digi->bx()<-3) continue; 
+                   if(digi->bx()>max_rpc_bx || digi->bx()<min_rpc_bx) continue; 
 
                    if(detid.layer()==1) vrpc_hit_layer1.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
                    if(detid.layer()==2) vrpc_hit_layer2.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
                    if(detid.station()==3) vrpc_hit_st3.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
                    if(detid.station()==4) vrpc_hit_st4.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
 
-               }///for digicout
+               }
     }///for chamber   
 
 
@@ -77,10 +80,8 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         int x2 = -localX(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip);
 
                         int phi_b = bendingAngle(x1,x2,average);
-
-                        //int phi_diff = phi2 - phi1;
-                        //int phi_b = bendingAngle(phi_diff);
                         rpc2dt_phib.push_back(phi_b);
+                        
                         ///delta_phib to find the highest pt primitve
                         delta_phib.push_back(abs(phi_b));
                         found_hits = true;
@@ -90,13 +91,14 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
             }
 ///Use ts2tag variable to store N rpchits for the same st/wheel/sec
-            int hit = 0;
+            int bx_range = (max_rpc_bx - min_rpc_bx) + 1 ;
+            int hit[bx_range] = {0};   ///store the number of RPC->DT for each bx, stored as ts2tag
             for(unsigned int l1=0; l1<vrpc_hit_layer1.size(); l1++){
                 if(vrpc_hit_layer1[l1].station!=st || vrpc_hit_layer1[l1].sector!=sec || vrpc_hit_layer1[l1].wheel!=wh) continue;
                     int phi2 = radialAngle(vrpc_hit_layer1[l1].detid, c, vrpc_hit_layer1[l1].strip) ;
                     phi2 = phi2<<2;
-                    L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_layer1[l1].bx, wh, sec-1, st, phi2, 0, 3, hit, 0, 2);
-                    hit++;
+                    L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_layer1[l1].bx, wh, sec-1, st, phi2, 0, 3, hit[vrpc_hit_layer1[l1].bx+2], 0, 2);
+                    hit[vrpc_hit_layer1[l1].bx+2]++;
                     l1ttma_hits_out.push_back(rpc2dt_out);
             }
 
@@ -104,8 +106,9 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                 if(vrpc_hit_layer2[l2].station!=st || vrpc_hit_layer2[l2].sector!=sec || vrpc_hit_layer2[l2].wheel!=wh) continue;
                     int phi2 = radialAngle(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip) ;
                     phi2 = phi2<<2;
-                    L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_layer2[l2].bx, wh, sec-1, st, phi2, 0, 3, hit , 0, 2);
-                    hit++;
+                    //cout<<vrpc_hit_layer2[l2].bx<<"\t"<<wh<<"\t"<<sec<<"\t"<<st<<"\t"<<phi2<<"\t"<<hit[vrpc_hit_layer2[l2].bx+2]<<endl;
+                    L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_layer2[l2].bx, wh, sec-1, st, phi2, 0, 3, hit[vrpc_hit_layer2[l2].bx+2] , 0, 2);
+                    hit[vrpc_hit_layer2[l2].bx+2]++;
                     l1ttma_hits_out.push_back(rpc2dt_out);
             }
 
@@ -114,8 +117,8 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         if(st!=3 || vrpc_hit_st3[l1].station!=3 || vrpc_hit_st3[l1].wheel!=wh || vrpc_hit_st3[l1].sector!=sec) continue;
                         int phi1 = radialAngle(vrpc_hit_st3[l1].detid, c, vrpc_hit_st3[l1].strip) ;
                         phi1 = phi1<<2;
-                        L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_st3[l1].bx, wh, sec-1, st, phi1, 0, 3, hit, 0, 2);
-                        hit++;
+                        L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_st3[l1].bx, wh, sec-1, st, phi1, 0, 3, hit[vrpc_hit_st3[l1].bx+2], 0, 2);
+                        hit[vrpc_hit_st3[l1].bx+2]++;
                         l1ttma_out.push_back(rpc2dt_out);
                         l1ttma_hits_out.push_back(rpc2dt_out);
                         //break;
@@ -125,13 +128,14 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         if(st!=4 || vrpc_hit_st4[l1].station!=4 || vrpc_hit_st4[l1].wheel!=wh || vrpc_hit_st4[l1].sector!=sec) continue;
                         int phi1 = radialAngle(vrpc_hit_st4[l1].detid, c, vrpc_hit_st4[l1].strip) ;
                         phi1 = phi1<<2;
-                        L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_st4[l1].bx, wh, sec-1, st, phi1, 0, 3, hit , 0, 2);
-                        hit++;
+                        L1MuDTChambPhDigi rpc2dt_out( vrpc_hit_st4[l1].bx, wh, sec-1, st, phi1, 0, 3, hit[vrpc_hit_st4[l1].bx] , 0, 2);
+                        hit[vrpc_hit_st4[l1].bx]++;
                         l1ttma_out.push_back(rpc2dt_out);
                         l1ttma_hits_out.push_back(rpc2dt_out);
                         //break;
             }             
             if(found_hits){
+
                 int min_index = std::distance(delta_phib.begin(), std::min_element(delta_phib.begin(), delta_phib.end())) + 0;
                 L1MuDTChambPhDigi rpc2dt_out( rpcbx, wh, sec-1, st, rpc2dt_phi[min_index], rpc2dt_phib[min_index], 3, 0, 0, 2);
                 l1ttma_out.push_back(rpc2dt_out);
@@ -140,8 +144,9 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
        }
     }
    }
-
+///Container to store RPC->DT for RPC only (only in stations 1 and 2 (2 layers->phib))
 m_rpcdt_translated.setContainer(l1ttma_out);
+///Container to store RPC->DT for Bx correction
 m_rpchitsdt_translated.setContainer(l1ttma_hits_out);
 
 }
