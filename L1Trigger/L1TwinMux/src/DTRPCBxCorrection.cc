@@ -67,7 +67,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
             dtts=0; rpcts1=0; dttsnew = 0;
             dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,bx ,track_seg);
             if(!dtts) continue;
-            //dtts->setRpcBit(0);	 
+            dtts->setRpcBit(0);	 
             int nhits = noRPCHits(m_phiRPCDigis, rpcbx, wheel, sector, station);
             for(int hit=0; hit<nhits; hit++){            
             rpcts1 = m_phiRPCDigis.chPhiSegm(wheel, station, sector, rpcbx,hit);
@@ -123,7 +123,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
       shifted[ibx_dtp+3] = true;
 
     	} 
-     if(dtts && dtts->code()<m_QualityLimit && dttsnew && ibx_dtp!=0) dups[ibx_dtp+3] = true; 
+     if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtp+3] = true; 
 
      }
           else if ( (delta_0.size() + delta_p.size()) <= min_index  && delta_m.size()!=0  ) {
@@ -146,7 +146,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
       shifted[ibx_dtm+3] = true;
 
       }
-     if(dtts && dtts->code()<m_QualityLimit && dttsnew && ibx_dtm!=0) dups[ibx_dtm+3] = true; 
+     if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtm+3] = true; 
 
 
      }

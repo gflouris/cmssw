@@ -44,18 +44,5 @@ private:
   ///Output
   RPCDigiCollection m_outrpcDigis;
 
-  ///Event Setup Handler
-  //edm::ESHandle< L1TwinMuxParams > tmParamsHandle;
-
-
-  // struct rpc_hit
-  // {
-  //   int station;
-  //   int sector;
-  //   int wheel;
-  //   RPCDetId detid;
-  //   int strip;
-  // };
-
 };
 #endif

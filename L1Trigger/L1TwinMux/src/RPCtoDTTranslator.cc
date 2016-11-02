@@ -64,6 +64,7 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
             bool found_hits = false;
             std::vector<int> rpc2dt_phi, rpc2dt_phib;
 
+            ///Loop over all combinations of layer 1 and 2.
             for(unsigned int l1=0; l1<vrpc_hit_layer1.size(); l1++){
                 for(unsigned int l2=0; l2<vrpc_hit_layer2.size(); l2++){
 
@@ -81,7 +82,7 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
                         int phi_b = bendingAngle(x1,x2,average);
                         rpc2dt_phib.push_back(phi_b);
-                        
+
                         ///delta_phib to find the highest pt primitve
                         delta_phib.push_back(abs(phi_b));
                         found_hits = true;
