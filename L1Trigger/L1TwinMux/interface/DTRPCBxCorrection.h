@@ -39,11 +39,12 @@ public:
 
  ///Return Output PhContainer
  L1MuDTChambPhContainer getDTContainer(){  return m_dt_tsshifted;}
- 
+
   static int noRPCHits(L1MuDTChambPhContainer inCon, int bx, int wh, int sec, int st);
 
 private:
   int deltaPhi(int dt_phi, int rpc_strip );
+  int sign(float);
   ///Count #of RPC hits in a bx
 
 
@@ -56,7 +57,7 @@ private:
   L1MuDTChambPhContainer m_phiDTDigis;
   L1MuDTChambPhContainer m_phiRPCDigis;
   L1MuDTChambPhContainer m_dt_tsshifted;
- 
+
   std::vector<L1MuDTChambPhDigi> l1ttma_out;
 
   int m_QualityLimit;

@@ -55,10 +55,13 @@ void DTRPCBxCorrection::BxCorrection(int track_seg){
 for (wheel=-2;wheel<=2; wheel++ ){
     for (sector=0;sector<12; sector++ ){
      for (station=1; station<=4; station++){
-        //ibx_dt = 0, fbx_dt = 0; 
+        //ibx_dt = 0, fbx_dt = 0;
     bool shifted[7] = {false, false, false, false,false, false, false};
     bool dups[7] = {false, false, false, false,false, false, false};
+		bool secondTs[7] = {false, false, false, false,false, false, false};
+
     L1MuDTChambPhContainer shiftedPhiDTDigis;
+		L1MuDTChambPhContainer shiftedPhiDTDigis2nd;
 
         for(bx=-3; bx<=3; bx++){
         vector<int> delta_m, delta_p, delta_0;
@@ -67,30 +70,30 @@ for (wheel=-2;wheel<=2; wheel++ ){
             dtts=0; rpcts1=0; dttsnew = 0;
             dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,bx ,track_seg);
             if(!dtts) continue;
-            dtts->setRpcBit(0);	 
+
             int nhits = noRPCHits(m_phiRPCDigis, rpcbx, wheel, sector, station);
-            for(int hit=0; hit<nhits; hit++){            
+            for(int hit=0; hit<nhits; hit++){
             rpcts1 = m_phiRPCDigis.chPhiSegm(wheel, station, sector, rpcbx,hit);
-            m_shift = UNDEF;   
+            m_shift = UNDEF;
 
 
             if(rpcts1 && dtts && dtts->code()<m_QualityLimit && deltaPhi(dtts->phi(),rpcts1->phi()) < m_DphiWindow){
                //cout<<dtts->bxNum()<<"\t"<<rpcbx<<endl;
 
 		           if((dtts->bxNum()-rpcbx)==-1  ) {
-		             delta_m.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) ); 
-                 ibx_dtm = dtts->bxNum(); fbx_dtm = rpcbx; 
+		             delta_m.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) );
+                 ibx_dtm = dtts->bxNum(); fbx_dtm = rpcbx;
                  //cout<<bx<<"\t"<<rpcbx<<"\t"<<dtts->phi()<<endl;
                }
-             
+
                if((dtts->bxNum()-rpcbx)==0 )  {
-		              delta_0.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) ); 
-                  //ibx_dt = dtts->bxNum(); fbx_dt = rpcbx; 
+		              delta_0.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) );
+                  //ibx_dt = dtts->bxNum(); fbx_dt = rpcbx;
                   //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
                }
 
                if((dtts->bxNum()-rpcbx)==1 )  {
-	               delta_p.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) ); 
+	               delta_p.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) );
       		       ibx_dtp = dtts->bxNum(); fbx_dtp = rpcbx;
                  //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
                 }
@@ -104,13 +107,14 @@ for (wheel=-2;wheel<=2; wheel++ ){
     if(delta.size() != 0){
     L1MuDTChambPhDigi *dtts_sh = 0;
     std::vector<L1MuDTChambPhDigi> l1ttma_outsh;
+		std::vector<L1MuDTChambPhDigi> l1ttma_outsh_2nd;
 
      unsigned int min_index = std::distance(delta.begin(), std::min_element(delta.begin(), delta.end())) + 0;
      //cout<<delta_0.size()<<"\t"<<delta_p.size()<<"\t"<<delta_m.size()<<"\t"<<min_index<<"\t"<<wheel<<"\t"<<sector<<endl;
      ////do not concat....find the minimum for each vector then compare
 
       //if ( delta_0.size() ==0 &&  ((delta_0.size() <= min_index) && ( min_index < delta_p.size() ) && delta_p.size()!=0 ) ) {
-      if ( ((delta_0.size() <= min_index) && ( min_index < (delta_0.size() + delta_p.size()) ) && delta_p.size()!=0 ) ) {        
+      if ( ((delta_0.size() <= min_index) && ( min_index < (delta_0.size() + delta_p.size()) ) && delta_p.size()!=0 ) ) {
         dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtp,track_seg);
         dttsnew = m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,track_seg);
         //cout<<"deltap"<<ibx_dtm<<"\t"<<fbx_dtm<<"\t"<<dtts->phi()<<endl;
@@ -122,15 +126,49 @@ for (wheel=-2;wheel<=2; wheel++ ){
 
       shifted[ibx_dtp+3] = true;
 
-    	} 
-     if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtp+3] = true; 
+    	}
+			if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtp+3] = true;
+
+			if(dtts && dtts->code()<m_QualityLimit && dttsnew && track_seg==0 && !m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,1)) {
+				//cout<<"if delta p"<<fbx_dtp<<endl;
+			dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtp,track_seg);
+			if(sign(dtts->phi())!=sign(dttsnew->phi())) {
+
+			dtts_sh = new L1MuDTChambPhDigi( fbx_dtp , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 1, dtts->BxCnt(),1);
+			//cout<<dtts_sh->phiB()<<endl;
+			l1ttma_outsh_2nd.push_back(*dtts_sh);
+
+			dups[ibx_dtp+3] = false;
+			shifted[ibx_dtp+3] = true;
+
+			secondTs[fbx_dtp+3] = true;
+		  }
+			}
+
+
+			if(dtts && dtts->code()<m_QualityLimit && dttsnew && track_seg==1 && !m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,0)) {
+				//cout<<"if delta p"<<fbx_dtp<<endl;
+			dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtp,track_seg);
+			if(sign(dtts->phi())!=sign(dttsnew->phi())) {
+
+			dtts_sh = new L1MuDTChambPhDigi( fbx_dtp , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 0, dtts->BxCnt(),1);
+			//cout<<dtts_sh->phiB()<<endl;
+			l1ttma_outsh_2nd.push_back(*dtts_sh);
+
+			dups[ibx_dtp+3] = false;
+			shifted[ibx_dtp+3] = true;
+
+			secondTs[fbx_dtp+3] = true;
+		  }
+			}
+
 
      }
           else if ( (delta_0.size() + delta_p.size()) <= min_index  && delta_m.size()!=0  ) {
 
         // dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dt,track_seg);
         // dtts_sh = new L1MuDTChambPhDigi( fbx_dt , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),1);
-        // l1ttma_outsh.push_back(*dtts_sh); 
+        // l1ttma_outsh.push_back(*dtts_sh);
         // shifted[ibx_dt+3] = true;
         dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
         dttsnew = m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtm,track_seg);
@@ -146,23 +184,60 @@ for (wheel=-2;wheel<=2; wheel++ ){
       shifted[ibx_dtm+3] = true;
 
       }
-     if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtm+3] = true; 
+			if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtm+3] = true;
 
+			if(dtts && dtts->code()<m_QualityLimit && dttsnew && track_seg==0 && !m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,1) ) {
+            //cout<<"if delta_m"<<endl;
+						if(sign(dtts->phi())!=sign(dttsnew->phi())) {
 
+      dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
+      dtts_sh = new L1MuDTChambPhDigi( fbx_dtm , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 1, dtts->BxCnt(),1);
+      l1ttma_outsh.push_back(*dtts_sh);
+
+			secondTs[fbx_dtm+3] = true;
+			dups[ibx_dtm+3] = false;
+			shifted[ibx_dtm+3] = true;
+		}
+
+      }
+
+			if(dtts && dtts->code()<m_QualityLimit && dttsnew && track_seg==1 && !m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,0) ) {
+            //cout<<"if delta_m"<<endl;
+						if(sign(dtts->phi())!=sign(dttsnew->phi())) {
+
+      dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
+      dtts_sh = new L1MuDTChambPhDigi( fbx_dtm , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 0, dtts->BxCnt(),1);
+      l1ttma_outsh.push_back(*dtts_sh);
+
+			secondTs[fbx_dtm+3] = true;
+			dups[ibx_dtm+3] = false;
+			shifted[ibx_dtm+3] = true;
+		}
+
+      }
      }
 
      shiftedPhiDTDigis.setContainer(l1ttma_outsh);
+		 shiftedPhiDTDigis2nd.setContainer(l1ttma_outsh_2nd);
+
    }
     }//end of bx
 
       for(int bx=-3; bx<=3; bx++){
         L1MuDTChambPhDigi * dtts=0;
-        dtts = shiftedPhiDTDigis.chPhiSegm(wheel,station,sector,bx,track_seg);
-        if(dtts){l1ttma_out.push_back(*dtts);  continue; }
+				if(secondTs[bx+3] && track_seg==0 && !shifted[bx+3]) {
+					//cout<<"SECOND  "<<bx<<endl;
+					  dtts = shiftedPhiDTDigis2nd.chPhiSegm(wheel,station,sector,bx,1);
+						if(dtts) l1ttma_out.push_back(*dtts);
+
+				}
+				dtts = shiftedPhiDTDigis.chPhiSegm(wheel,station,sector,bx,track_seg);
+        if(dtts){l1ttma_out.push_back(*dtts);  continue;}
+
         if(dups[bx+3]) continue;
         ///if there is no shift then put the original primitive
-        dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,bx,track_seg); 
-        if(!shifted[bx+3] && dtts) { 
+        dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,bx,track_seg);
+        if(!shifted[bx+3] && dtts) {
            l1ttma_out.push_back(*dtts);
          }
 
@@ -191,6 +266,13 @@ std::vector<int> DTRPCBxCorrection::concat_delta(vector<int> delta_0, vector<int
     return delta;
 }
 
+int DTRPCBxCorrection::sign(float inv){
+	if(inv<0) return -1;
+	if(inv>0) return 1;
+	return 0;
+
+
+}
 
 int DTRPCBxCorrection::noRPCHits(L1MuDTChambPhContainer inCon, int bx, int wh, int sec, int st){
 
@@ -204,5 +286,3 @@ int DTRPCBxCorrection::noRPCHits(L1MuDTChambPhContainer inCon, int bx, int wh, i
 
   return(size);
 }
-
-
