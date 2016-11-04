@@ -32,8 +32,8 @@ m_inrpcDigis = inrpcDigis;
 
 void RPCHitCleaner::run(const edm::EventSetup& c) {
 
-  //// hits[wheel][station][sector][layer][strip][bx]
-  int hits[5][4][12][2][5][200]= {{{{{{0}}}}}};
+  //// hits[wheel][station][sector][layer][strip][roll][bx]
+    int hits[5][4][12][2][5][3][200]= {{{{{{{0}}}}}}};
 
   vector<int> vcluster_size;
   int cluster_size = 0;
@@ -59,7 +59,7 @@ void RPCHitCleaner::run(const edm::EventSetup& c) {
                     itr++;
                     cluster_size++;
                     ///hit belongs to cluster with clusterid
-                    hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][digi->strip()]= cluster_id ;
+                    hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][detid.roll()][digi->strip()]= cluster_id ;
 
                     ///strip of i-1
                     strip_n1 = digi->strip();
@@ -77,20 +77,29 @@ vcluster_size.push_back(cluster_size);
                int cluster_n1 = -10;
               ///Store the last bx of strips coming from one st/sec/wheel/layer
               ///iterates from bx=1 to bx=-1
+            //  cout<<"----->"<<detid.ring()<<endl;
+
+
               int bx_hits[5][4][12][2][200]= {{{{{0}}}}};
+              //int bx_hits[5][4][12][2]= {{{{0}}}};
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
-                      bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][digi->strip()] = digi->bx();
+                      bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][detid.roll()] = digi->bx();
+  //                    cout<<digi->bx()<<"\t"<<(detid.ring())<<"\t"<<(detid.station())<<"\t"<<(detid.sector())<<"\t"<<(detid.layer())<<"\t"<<digi->strip()<<endl;
                 }
 
-
+//cout<<"VVVVVVVVVV"<<endl;
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
 
-                    int cluster_id =  hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][digi->strip()];
+                    int cluster_id =  hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][detid.roll()][digi->strip()];
 
                     ///Remove clusters with size>=4
                     if( vcluster_size[cluster_id] >=4 ) continue;
                     ///keep only one bx per st/sec/wheel/layer
-                    if(digi->bx()!=bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][digi->strip()] ) continue;
+                    //cout<<digi->bx()<<"\t"<<(detid.ring())<<"\t"<<(detid.station())<<"\t"<<(detid.sector())<<"\t"<<(detid.layer())<<"\t"<<digi->strip()<<"\t"<<detid.roll()<<endl;
+//cout<<"bx hit"<<bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][detid.roll()]<<endl;
+
+                    if(digi->bx()!=bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][detid.roll()] ) continue;
+  //                  cout<<"bx hit after c"<<bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][detid.roll()]<<endl;
 
                     ///Count strips in a cluster
                     if(cluster_n1 != cluster_id) {strips[digi->bx()+3] = {0}; }//cout<<"reset"<<cluster_n1<<"\t"<<cluster_id<<endl;}

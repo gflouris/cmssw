@@ -78,24 +78,18 @@ for (wheel=-2;wheel<=2; wheel++ ){
 
 
             if(rpcts1 && dtts && dtts->code()<m_QualityLimit && deltaPhi(dtts->phi(),rpcts1->phi()) < m_DphiWindow){
-               //cout<<dtts->bxNum()<<"\t"<<rpcbx<<endl;
-
 		           if((dtts->bxNum()-rpcbx)==-1  ) {
 		             delta_m.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) );
                  ibx_dtm = dtts->bxNum(); fbx_dtm = rpcbx;
-                 //cout<<bx<<"\t"<<rpcbx<<"\t"<<dtts->phi()<<endl;
                }
 
                if((dtts->bxNum()-rpcbx)==0 )  {
 		              delta_0.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) );
-                  //ibx_dt = dtts->bxNum(); fbx_dt = rpcbx;
-                  //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
                }
 
                if((dtts->bxNum()-rpcbx)==1 )  {
 	               delta_p.push_back( deltaPhi(dtts->phi(),rpcts1->phi()) );
       		       ibx_dtp = dtts->bxNum(); fbx_dtp = rpcbx;
-                 //cout<<ibx_dt<<"\t"<<fbx_dt<<"\t"<<dtts->phi()<<endl;
                 }
               }//end if dtts and quality
             }
@@ -123,6 +117,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
       dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtp,track_seg);
       dtts_sh = new L1MuDTChambPhDigi( fbx_dtp , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),1);
       l1ttma_outsh.push_back(*dtts_sh);
+			//cout<<"first   "<<dtts_sh->RpcBit()<<endl;
 
       shifted[ibx_dtp+3] = true;
 
@@ -137,7 +132,7 @@ for (wheel=-2;wheel<=2; wheel++ ){
 			dtts_sh = new L1MuDTChambPhDigi( fbx_dtp , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 1, dtts->BxCnt(),1);
 			//cout<<dtts_sh->phiB()<<endl;
 			l1ttma_outsh_2nd.push_back(*dtts_sh);
-
+			//cout<<"second   "<<dtts_sh->RpcBit()<<endl;
 			dups[ibx_dtp+3] = false;
 			shifted[ibx_dtp+3] = true;
 
@@ -159,40 +154,43 @@ for (wheel=-2;wheel<=2; wheel++ ){
 			shifted[ibx_dtp+3] = true;
 
 			secondTs[fbx_dtp+3] = true;
+		//	cout<<"second   "<<dtts_sh->RpcBit()<<endl;
+
 		  }
 			}
 
 
      }
           else if ( (delta_0.size() + delta_p.size()) <= min_index  && delta_m.size()!=0  ) {
-
         // dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dt,track_seg);
         // dtts_sh = new L1MuDTChambPhDigi( fbx_dt , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),1);
         // l1ttma_outsh.push_back(*dtts_sh);
         // shifted[ibx_dt+3] = true;
         dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
         dttsnew = m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtm,track_seg);
-        //cout<<"deltam"<<ibx_dtm<<"\t"<<fbx_dtm<<"\t"<<dtts->phi()<<endl;
+      //  cout<<"deltam"<<ibx_dtm<<"\t"<<fbx_dtm<<"\t"<<dtts->phi()<<endl;
 
       if(dtts && dtts->code()<m_QualityLimit && !dttsnew ) {
-              //cout<<"if delta_m"<<endl;
+          //    cout<<"if delta_m0"<<endl;
 
       dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
       dtts_sh = new L1MuDTChambPhDigi( fbx_dtm , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), dtts->Ts2Tag(), dtts->BxCnt(),1);
       l1ttma_outsh.push_back(*dtts_sh);
 
       shifted[ibx_dtm+3] = true;
+			//cout<<"first   "<<dtts_sh->RpcBit()<<endl;
 
       }
 			if(dtts && dtts->code()<m_QualityLimit && dttsnew ) dups[ibx_dtm+3] = true;
 
 			if(dtts && dtts->code()<m_QualityLimit && dttsnew && track_seg==0 && !m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,1) ) {
-            //cout<<"if delta_m"<<endl;
+          //  cout<<"if delta_m"<<endl;
 						if(sign(dtts->phi())!=sign(dttsnew->phi())) {
 
       dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
       dtts_sh = new L1MuDTChambPhDigi( fbx_dtm , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 1, dtts->BxCnt(),1);
-      l1ttma_outsh.push_back(*dtts_sh);
+      l1ttma_outsh_2nd.push_back(*dtts_sh);
+			//cout<<"second   "<<dtts_sh->RpcBit()<<endl;
 
 			secondTs[fbx_dtm+3] = true;
 			dups[ibx_dtm+3] = false;
@@ -202,12 +200,13 @@ for (wheel=-2;wheel<=2; wheel++ ){
       }
 
 			if(dtts && dtts->code()<m_QualityLimit && dttsnew && track_seg==1 && !m_phiDTDigis.chPhiSegm(wheel,station,sector,fbx_dtp,0) ) {
-            //cout<<"if delta_m"<<endl;
+            //cout<<"if delta_m2"<<endl;
 						if(sign(dtts->phi())!=sign(dttsnew->phi())) {
 
       dtts = m_phiDTDigis.chPhiSegm(wheel,station,sector,ibx_dtm,track_seg);
       dtts_sh = new L1MuDTChambPhDigi( fbx_dtm , dtts->whNum(), dtts->scNum(), dtts->stNum(),dtts->phi(), dtts->phiB(), dtts->code(), 0, dtts->BxCnt(),1);
-      l1ttma_outsh.push_back(*dtts_sh);
+      l1ttma_outsh_2nd.push_back(*dtts_sh);
+			//cout<<"second   "<<dtts_sh->RpcBit()<<endl;
 
 			secondTs[fbx_dtm+3] = true;
 			dups[ibx_dtm+3] = false;
@@ -231,6 +230,13 @@ for (wheel=-2;wheel<=2; wheel++ ){
 						if(dtts) l1ttma_out.push_back(*dtts);
 
 				}
+				if(secondTs[bx+3] && track_seg==1 && !shifted[bx+3]) {
+					//cout<<"SECOND  "<<bx<<endl;
+						dtts = shiftedPhiDTDigis2nd.chPhiSegm(wheel,station,sector,bx,0);
+						if(dtts) l1ttma_out.push_back(*dtts);
+
+				}
+
 				dtts = shiftedPhiDTDigis.chPhiSegm(wheel,station,sector,bx,track_seg);
         if(dtts){l1ttma_out.push_back(*dtts);  continue;}
 
