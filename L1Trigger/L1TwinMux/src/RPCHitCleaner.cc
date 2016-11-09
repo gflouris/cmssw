@@ -45,10 +45,12 @@ void RPCHitCleaner::run(const edm::EventSetup& c) {
                RPCDetId detid = (*chamber).first;
                int strip_n1 = -10000;
                int bx_n1 = -10000;
+               if(detid.region()!=0 ) continue; //Region = 0 Barrel
 
 
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
 
+                     if(fabs(digi->bx())>3 ) continue;
                     ///Create cluster ids and store their size
                     if((digi->strip()+1!=strip_n1)|| digi->bx()!=bx_n1){
                       if(itr!=0)vcluster_size.push_back(cluster_size);
@@ -69,27 +71,24 @@ void RPCHitCleaner::run(const edm::EventSetup& c) {
     }///for chamber
 vcluster_size.push_back(cluster_size);
 
-
   for( auto chamber = m_inrpcDigis.begin(); chamber != m_inrpcDigis.end(); ++chamber ) {
            RPCDetId detid = (*chamber).first;
+           if(detid.region()!=0 ) continue; //Region = 0 Barrel
 
                int strips[5] = {0};
                int cluster_n1 = -10;
               ///Store the last bx of strips coming from one st/sec/wheel/layer
               ///iterates from bx=1 to bx=-1
-            //  cout<<"----->"<<detid.ring()<<endl;
-
-
               int bx_hits[5][4][12][2][200]= {{{{{0}}}}};
               //int bx_hits[5][4][12][2]= {{{{0}}}};
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
+                      if(fabs(digi->bx())>3 ) continue;
                       bx_hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][detid.roll()] = digi->bx();
   //                    cout<<digi->bx()<<"\t"<<(detid.ring())<<"\t"<<(detid.station())<<"\t"<<(detid.sector())<<"\t"<<(detid.layer())<<"\t"<<digi->strip()<<endl;
                 }
 
-//cout<<"VVVVVVVVVV"<<endl;
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
-
+                   if(fabs(digi->bx())>3 ) continue;
                     int cluster_id =  hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][detid.roll()][digi->strip()];
 
                     ///Remove clusters with size>=4

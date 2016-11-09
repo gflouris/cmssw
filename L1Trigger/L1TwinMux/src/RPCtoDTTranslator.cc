@@ -45,7 +45,7 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
                for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
                    if(detid.region()!=0 ) continue; //Region = 0 Barrel
-                   if(digi->bx()>max_rpc_bx || digi->bx()<min_rpc_bx) continue; 
+                   if(digi->bx()>max_rpc_bx || digi->bx()<min_rpc_bx) continue;
 
                    if(detid.layer()==1) vrpc_hit_layer1.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
                    if(detid.layer()==2) vrpc_hit_layer2.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
@@ -53,11 +53,11 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                    if(detid.station()==4) vrpc_hit_st4.push_back({digi->bx(), detid.station(), detid.sector(), detid.ring(), detid, digi->strip() });
 
                }
-    }///for chamber   
+    }///for chamber
 
 
    for(int wh=-2; wh<=2; wh++){
-    for(int sec=1; sec<=12; sec++){  
+    for(int sec=1; sec<=12; sec++){
         for(int st=1; st<=4; st++){
             int rpcbx = 0;
             std::vector<int> delta_phib;
@@ -74,13 +74,15 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
                         int phi1 = radialAngle(vrpc_hit_layer1[l1].detid, c, vrpc_hit_layer1[l1].strip) ;
                         int phi2 = radialAngle(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip) ;
-                        int average = ( (phi1 + phi2)/2 ); //10-bit
-                        rpc2dt_phi.push_back(average<<2);  //Convert and store to 12-bit
+                        int average = ( (phi1 + phi2)/2 )<<2; //10-bit->12-bit
+                        rpc2dt_phi.push_back(average);  //Convert and store to 12-bit
 
-                        int x1 = localX(vrpc_hit_layer1[l1].detid, c, vrpc_hit_layer1[l1].strip);
-                        int x2 = -localX(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip);
 
-                        int phi_b = bendingAngle(x1,x2,average);
+
+                        int xin = localX(vrpc_hit_layer1[l1].detid, c, vrpc_hit_layer1[l1].strip);
+                        int xout = localX(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip);
+
+                        int phi_b = bendingAngle(xin,xout,average);
                         rpc2dt_phib.push_back(phi_b);
 
                         ///delta_phib to find the highest pt primitve
@@ -114,7 +116,7 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
             }
 
             for(unsigned int l1=0; l1<vrpc_hit_st3.size(); l1++){
-                        
+
                         if(st!=3 || vrpc_hit_st3[l1].station!=3 || vrpc_hit_st3[l1].wheel!=wh || vrpc_hit_st3[l1].sector!=sec) continue;
                         int phi1 = radialAngle(vrpc_hit_st3[l1].detid, c, vrpc_hit_st3[l1].strip) ;
                         phi1 = phi1<<2;
@@ -134,13 +136,13 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         l1ttma_out.push_back(rpc2dt_out);
                         l1ttma_hits_out.push_back(rpc2dt_out);
                         //break;
-            }             
+            }
             if(found_hits){
 
                 int min_index = std::distance(delta_phib.begin(), std::min_element(delta_phib.begin(), delta_phib.end())) + 0;
                 L1MuDTChambPhDigi rpc2dt_out( rpcbx, wh, sec-1, st, rpc2dt_phi[min_index], rpc2dt_phib[min_index], 3, 0, 0, 2);
                 l1ttma_out.push_back(rpc2dt_out);
-            }   
+            }
 
        }
     }
@@ -164,7 +166,7 @@ int RPCtoDTTranslator::radialAngle(RPCDetId detid,const edm::EventSetup& c, int 
     const RPCRoll* roll = rpcGeometry->roll(detid);
     GlobalPoint stripPosition = roll->toGlobal(roll->centreOfStrip(strip));
 
-    double globalphi = stripPosition.phi(); 
+    double globalphi = stripPosition.phi();
     int sector = (roll->id()).sector();
     if ( sector == 1) radialAngle = int( globalphi*1024 );
     else {
@@ -180,13 +182,25 @@ int RPCtoDTTranslator::localX(RPCDetId detid, const edm::EventSetup& c, int stri
     c.get<MuonGeometryRecord>().get(rpcGeometry);
 
     const RPCRoll* roll = rpcGeometry->roll(detid);
-    return roll->centreOfStrip(strip).x()/2.;
+
+    ///Orientaion of RPCs
+    GlobalPoint p1cmPRG = roll->toGlobal(LocalPoint(1,0,0));
+    GlobalPoint m1cmPRG = roll->toGlobal(LocalPoint(-1,0,0));
+    float phip1cm = p1cmPRG.phi();
+    float phim1cm = m1cmPRG.phi();
+    int direction = (phip1cm-phim1cm)/abs(phip1cm-phim1cm);
+    ///---Orientaion
+
+    return direction * roll->centreOfStrip(strip).x();
 }
 
-int RPCtoDTTranslator::bendingAngle(int x1, int x2, int phi){   
-//int RPCtoDTTranslator::bendingAngle(int phi){   
-    int rvalue = atan((x1-x2)/17.) * 512. - phi;
+int RPCtoDTTranslator::bendingAngle(int xin, int xout, int phi){
+//int RPCtoDTTranslator::bendingAngle(int phi){
+
+    int rvalue = (atan((xout-xin)/35.)) * 512. - phi/8;
+    //cout<<rvalue<<"\t"<<xout<<"\t"<<xin<<"\t"<<phi<<endl;
     return rvalue;
+
     //int rvalue = phi * 7;
     //if(rvalue>512) return 512;
     //if(rvalue<-512) return -512;
