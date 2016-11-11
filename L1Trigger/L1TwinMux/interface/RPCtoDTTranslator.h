@@ -52,10 +52,6 @@ private:
   L1MuDTChambPhContainer m_rpchitsdt_translated;
 
   RPCDigiCollection m_rpcDigis;
-  ///Event Setup Handler
-  //edm::ESHandle< L1TwinMuxParams > tmParamsHandle;
-  //int bendingAngle(float, float, float, float, bool );
-
 
   struct rpc_hit
   {
@@ -65,7 +61,10 @@ private:
     int wheel;
     RPCDetId detid;
     int strip;
+    int roll;
+    int layer;
   };
+
 
 };
 #endif

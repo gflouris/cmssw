@@ -43,9 +43,6 @@ public:
  L1MuDTChambPhContainer get_ph_tm_output(){  return m_tm_phi_output;}
 
 private:
-   
-
- 
   int radialAngle(RPCDetId , const edm::EventSetup& , int);
   ///Output PhContainer
   L1MuDTChambPhContainer m_tm_phi_output;

@@ -21,6 +21,7 @@
 #include "L1Trigger/L1TwinMux/interface/AlignTrackSegments.h"
 #include "L1Trigger/L1TwinMux/interface/RPCtoDTTranslator.h"
 #include "L1Trigger/L1TwinMux/interface/DTRPCBxCorrection.h"
+#include "L1Trigger/L1TwinMux/interface/DTLowQMatching.h"
 #include "L1Trigger/L1TwinMux/interface/RPCHitCleaner.h"
 #include "L1Trigger/L1TwinMux/interface/IOPrinter.h"
 using namespace std;
@@ -67,13 +68,16 @@ void L1TwinMuxAlgortithm::run(
   L1MuDTChambPhContainer rpcHitsPhiDigis = dt_from_rpc->getDTRPCHitsContainer();
 
 
+//DTLowQMatching *dddd = new DTLowQMatching(&phiDigis, rpcHitsPhiDigis);
+//dddd->run(c);
+
   ///Correct(in bx) DT primitives by comparing them to RPC.
   DTRPCBxCorrection *rpc_dt_bx = new DTRPCBxCorrection(phiDigis,rpcHitsPhiDigis);
   rpc_dt_bx->run(c);
 
   L1MuDTChambPhContainer phiDigiscp = rpc_dt_bx->getDTContainer();
 
-  //Add RPC primitives in case that there are no DT primitives. 
+  //Add RPC primitives in case that there are no DT primitives.
   std::vector<L1MuDTChambPhDigi> l1ttma_out;
   L1MuDTChambPhDigi const* dtts1=0;
   L1MuDTChambPhDigi const* dtts2=0;
@@ -91,31 +95,27 @@ void L1TwinMuxAlgortithm::run(
 
           dtts1 = phiDigiscp.chPhiSegm(wheel,station,sector,bx,0);
           dtts2 = phiDigiscp.chPhiSegm(wheel,station,sector,bx,1 );
-          rpcts1 = rpcPhiDigis.chPhiSegm1(wheel,station,sector,bx);	  
+          rpcts1 = rpcPhiDigis.chPhiSegm1(wheel,station,sector,bx);
 
             if(!onlyRPC) {
               if(!dtts1 && !dtts2 && !rpcts1 ) continue;
-              if(dtts1 && dtts1->code()!=7) { 
-                //L1MuDTChambPhDigi dt_ts1 = *dtts1;
-                //cout<<bx<<" "<<dtts1->bxNum()<<" "<<dtts1->code()<<endl;
+              if(dtts1 && dtts1->code()!=7) {
                 l1ttma_out.push_back(*dtts1);
               }
-              if(dtts2 && dtts2->code()!=7) { 
-                //L1MuDTChambPhDigi dt_ts2 = *dtts2;
-                //cout<<bx<<" "<<dtts2->bxNum()<<" "<<dtts2->code()<<endl;
+              if(dtts2 && dtts2->code()!=7) {
                 l1ttma_out.push_back(*dtts2);
               }
               if(!onlyDT){
-                if(!dtts1 && !dtts2 && rpcts1 && station<=2 ) { 
-                  L1MuDTChambPhDigi dt_rpc( rpcts1->bxNum() , rpcts1->whNum(), rpcts1->scNum(), rpcts1->stNum(),rpcts1->phi(), rpcts1->phiB(), rpcts1->code(), rpcts1->Ts2Tag(), rpcts1->BxCnt(),2); 
+                if(!dtts1 && !dtts2 && rpcts1 && station<=2 ) {
+                  L1MuDTChambPhDigi dt_rpc( rpcts1->bxNum() , rpcts1->whNum(), rpcts1->scNum(), rpcts1->stNum(),rpcts1->phi(), rpcts1->phiB(), rpcts1->code(), rpcts1->Ts2Tag(), rpcts1->BxCnt(),2);
                   l1ttma_out.push_back(dt_rpc);
                 }
               }
             }
 
             if(onlyRPC){
-              if( rpcts1 && station<=2 ) { 
-              L1MuDTChambPhDigi dt_rpc( rpcts1->bxNum() , rpcts1->whNum(), rpcts1->scNum(), rpcts1->stNum(),rpcts1->phi(), rpcts1->phiB(), rpcts1->code(), rpcts1->Ts2Tag(), rpcts1->BxCnt(),2); 
+              if( rpcts1 && station<=2 ) {
+              L1MuDTChambPhDigi dt_rpc( rpcts1->bxNum() , rpcts1->whNum(), rpcts1->scNum(), rpcts1->stNum(),rpcts1->phi(), rpcts1->phiB(), rpcts1->code(), rpcts1->Ts2Tag(), rpcts1->BxCnt(),2);
               l1ttma_out.push_back(dt_rpc);
 
               }
@@ -138,4 +138,3 @@ m_tm_phi_output.setContainer(l1ttma_out);
   }
 
 }
-
