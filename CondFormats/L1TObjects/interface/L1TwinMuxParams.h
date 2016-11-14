@@ -34,12 +34,13 @@ public:
   };
   enum {
     CONFIG = 0,
-    NUM_TM_PARAM_NODES=5
+    NUM_TM_PARAM_NODES=7
   };
   enum { USERPCBXFORDTBELOWQUALITY,
          DphiWindow,
          UseOnlyRPC,
          UseOnlyDT,
+         UseLowQDT,
          CorrectDTBxwRPC,
          Verbose,
 	       NUM_CONFIG_PARAMS};
@@ -60,6 +61,9 @@ public:
   void set_UseOnlyDT(int par1) {pnodes_[CONFIG].iparams_[UseOnlyDT] = par1;}
   int  get_UseOnlyDT() const{return pnodes_[CONFIG].iparams_[UseOnlyDT];}
 
+  void set_UseLowQDT(int par1) {pnodes_[CONFIG].iparams_[UseLowQDT] = par1;}
+  int  get_UseLowQDT() const{return pnodes_[CONFIG].iparams_[UseLowQDT];}
+
   void set_CorrectDTBxwRPC(int par1) {pnodes_[CONFIG].iparams_[CorrectDTBxwRPC] = par1;}
   int  get_CorrectDTBxwRPC() const{return pnodes_[CONFIG].iparams_[CorrectDTBxwRPC];}
 
@@ -72,13 +76,13 @@ public:
   // print parameters to stream:
   void print(std::ostream&) const;
   friend std::ostream& operator<<(std::ostream& o, const L1TwinMuxParams & p) { p.print(o); return o; }
- private:
-  unsigned version_;
-  unsigned fwVersion_;
+  private:
+    unsigned version_;
+    unsigned fwVersion_;
 
-  std::vector<Node> pnodes_;
-  // std::vector here is just so we can use "blob" in DB and evade max size limitations...
+    std::vector<Node> pnodes_;
+    // std::vector here is just so we can use "blob" in DB and evade max size limitations...
 
-  COND_SERIALIZABLE;
+    COND_SERIALIZABLE;
 };
 #endif

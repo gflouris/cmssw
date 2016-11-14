@@ -40,6 +40,7 @@ void L1TwinMuxAlgortithm::run(
   const L1TwinMuxParams& tmParams = *tmParamsHandle.product();
   bool onlyRPC = tmParams.get_UseOnlyRPC();
   bool onlyDT = tmParams.get_UseOnlyDT();
+  bool useLowQDT = tmParams.get_UseLowQDT();
   bool correctBX = tmParams.get_CorrectDTBxwRPC();
   bool verbose = tmParams.get_Verbose();
 
@@ -51,12 +52,12 @@ void L1TwinMuxAlgortithm::run(
   L1MuDTChambPhContainer phiDigis = alignedDTs->getDTContainer();
   //if only DTs are required without bx correction
   //return the aligned track segments
-  if(onlyDT && !correctBX) {
+  if(onlyDT && !correctBX && !useLowQDT) {
     m_tm_phi_output = phiDigis;
     return;
   }
 
-  ///Clean RPC hits.
+  ///Clean RPC hits
   RPCHitCleaner *rpcHitCl = new RPCHitCleaner(*rpcDigis);
   rpcHitCl->run(c);
   RPCDigiCollection rpcDigisCleaned = rpcHitCl->getRPCCollection();
@@ -64,12 +65,18 @@ void L1TwinMuxAlgortithm::run(
   ///Translate RPC digis to DT primitives.
   RPCtoDTTranslator *dt_from_rpc = new RPCtoDTTranslator(rpcDigisCleaned);
   dt_from_rpc->run(c);
-  L1MuDTChambPhContainer rpcPhiDigis = dt_from_rpc->getDTContainer();
-  L1MuDTChambPhContainer rpcHitsPhiDigis = dt_from_rpc->getDTRPCHitsContainer();
+  L1MuDTChambPhContainer rpcPhiDigis = dt_from_rpc->getDTContainer();            //Primitves used for RPC->DT (only station 1 and 2)
+  L1MuDTChambPhContainer rpcHitsPhiDigis = dt_from_rpc->getDTRPCHitsContainer(); //Primitves used for bx correction
 
+  ///Match low q DT primitives with RPC hits in dphiWindow
+  DTLowQMatching *dtlowq = new DTLowQMatching(&phiDigis, rpcHitsPhiDigis);
+  dtlowq->run(c);
 
-//DTLowQMatching *dddd = new DTLowQMatching(&phiDigis, rpcHitsPhiDigis);
-//dddd->run(c);
+  if(onlyDT && !correctBX && useLowQDT) {
+    m_tm_phi_output = phiDigis;
+    return;
+  }
+
 
   ///Correct(in bx) DT primitives by comparing them to RPC.
   DTRPCBxCorrection *rpc_dt_bx = new DTRPCBxCorrection(phiDigis,rpcHitsPhiDigis);
@@ -77,7 +84,7 @@ void L1TwinMuxAlgortithm::run(
 
   L1MuDTChambPhContainer phiDigiscp = rpc_dt_bx->getDTContainer();
 
-  //Add RPC primitives in case that there are no DT primitives.
+  ///Add RPC primitives in case that there are no DT primitives.
   std::vector<L1MuDTChambPhDigi> l1ttma_out;
   L1MuDTChambPhDigi const* dtts1=0;
   L1MuDTChambPhDigi const* dtts2=0;

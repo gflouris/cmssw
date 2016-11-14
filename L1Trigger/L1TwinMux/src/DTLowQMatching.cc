@@ -6,7 +6,7 @@
 //
 //
 //   Author :
-//   G. Flouris               U Ioannina    Mar. 2015
+//   G. Flouris               U Ioannina    Nov. 2016
 //--------------------------------------------------
 #include <iostream>
 #include <iomanip>
@@ -30,15 +30,10 @@ void DTLowQMatching::run( const edm::EventSetup& c) {
   tmParamsRcd.get(tmParamsHandle);
   const L1TwinMuxParams& tmParams = *tmParamsHandle.product();
 
-
-  m_DphiWindow   = tmParams.get_DphiWindowBxShift();
+	m_DphiWindow   = tmParams.get_DphiWindowBxShift();
 
   Matching(0);
   Matching(1);
-
-//  m_dt_tsshifted.setContainer(l1ttma_out);
-
-
 }
 
 void DTLowQMatching::Matching(int track_seg){
@@ -48,8 +43,7 @@ void DTLowQMatching::Matching(int track_seg){
 
   int bx=0, wheel=0, sector=0, station=1;
 
-
-for (wheel=-2;wheel<=2; wheel++ ){
+	for (wheel=-2;wheel<=2; wheel++ ){
     for (sector=0;sector<12; sector++ ){
      for (station=1; station<=4; station++){
 
@@ -59,28 +53,21 @@ for (wheel=-2;wheel<=2; wheel++ ){
           for(int rpcbx=bx-1; rpcbx<=bx+1; rpcbx++){
             dtts=0; rpcts1=0;
             dtts = m_phiDTDigis->chPhiSegm(wheel,station,sector,bx ,track_seg);
-            if(!dtts || dtts->code()>9) continue;
+            if(!dtts || dtts->code()>=2) continue;
 
             int nhits = 0;
 						nhits = DTRPCBxCorrection::noRPCHits(m_phiRPCDigis, rpcbx, wheel, sector, station);
-						//cout<<"hits  "<<nhits<<"  "<<station<<"  "<<sector<<endl;
-            for(int hit=0; hit<nhits; hit++){
-            rpcts1 = m_phiRPCDigis.chPhiSegm(wheel, station, sector, rpcbx,hit);
-						if(rpcts1)cout<<station<<"\t"<<dtts->phi()<<"\t"<<rpcts1->phi()<<"\t"<<DTRPCBxCorrection::deltaPhi(dtts->phi(),rpcts1->phi())<<endl;
-            if(rpcts1 && DTRPCBxCorrection::deltaPhi(dtts->phi(),rpcts1->phi()) < m_DphiWindow){
-							//cout<<"--"<<station<<"\t"<<dtts->phi()<<"\t"<<rpcts1->phi()<<"\t"<<DTRPCBxCorrection::deltaPhi(dtts->phi(),rpcts1->phi())<<endl;
-							dtts->setCode(1);
-            }//end if dtts and quality
-						else {dtts->setCode(7);
-							//cout<<"++"<<station<<"\t"<<dtts->phi()<<endl;
 
-						}
+            for(int hit=0; hit<nhits; hit++){
+            	rpcts1 = m_phiRPCDigis.chPhiSegm(wheel, station, sector, rpcbx,hit);
+							///If DT primitives with q<2 match with rpc hits do nothing else
+							///'remove' the primitive by setting is quality to 7
+            	if(rpcts1 && DTRPCBxCorrection::deltaPhi(dtts->phi(),rpcts1->phi()) < m_DphiWindow) continue;
+							else {dtts->setCode(7);}
           }
-					//if(nhits==0) dtts->setCode(7);
         }//end of rpc bx
 			}//end of dt bx
    }//end of station
    }//end of sc
   }//end of wheel
-
 }

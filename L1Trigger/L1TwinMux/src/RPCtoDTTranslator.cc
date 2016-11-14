@@ -13,7 +13,9 @@
 #include <iomanip>
 #include <iterator>
 #include <cmath>
+#include <map>
 
+#include "L1Trigger/L1TwinMux/interface/RPCHitCleaner.h"
 #include "L1Trigger/L1TwinMux/interface/RPCtoDTTranslator.h"
 #include "Geometry/RPCGeometry/interface/RPCRoll.h"
 #include "Geometry/RPCGeometry/interface/RPCGeometry.h"
@@ -57,7 +59,9 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
       vector<int> vcluster_size ;
       int cluster_id = -1;
       int itr=0;
-      int hits[5][4][12][2][5][3][100]= {{{{{{{0}}}}}}};
+//      int hits[5][4][12][2][5][3][100]= {{{{{{{0}}}}}}};
+      std::map<RPCHitCleaner::detId_Ext, int> hits;
+
       int cluster_size = 0;
       for( auto chamber = m_rpcDigis.begin(); chamber != m_rpcDigis.end(); ++chamber ) {
 
@@ -77,7 +81,10 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                        itr++;
                        cluster_size++;
                        ///hit belongs to cluster with clusterid
-                       hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][detid.roll()-1][digi->strip()]= cluster_id ;
+                       //hits[(detid.ring()+2)][(detid.station()-1)][(detid.sector()-1)][(detid.layer()-1)][(digi->bx()+2)][detid.roll()-1][digi->strip()]= cluster_id ;
+                       RPCHitCleaner::detId_Ext tmp{detid,digi->bx(),digi->strip()};
+                       hits[tmp] = cluster_id;
+
                        ///strip of i-1
                        strip_n1 = digi->strip();
                        bx_n1 = digi->bx();
@@ -134,7 +141,10 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
             for(unsigned int l1=0; l1<vrpc_hit_layer1.size(); l1++){
                 if(vrpc_hit_layer1[l1].station!=st || st>2 || vrpc_hit_layer1[l1].sector!=sec || vrpc_hit_layer1[l1].wheel!=wh) continue;
 
-			             int id = hits[vrpc_hit_layer1[l1].wheel+2][(vrpc_hit_layer1[l1].station-1)][(vrpc_hit_layer1[l1].sector-1)][(vrpc_hit_layer1[l1].layer-1)][(vrpc_hit_layer1[l1].bx+2)][vrpc_hit_layer1[l1].roll-1][vrpc_hit_layer1[l1].strip];
+			             //int id = hits[vrpc_hit_layer1[l1].wheel+2][(vrpc_hit_layer1[l1].station-1)][(vrpc_hit_layer1[l1].sector-1)][(vrpc_hit_layer1[l1].layer-1)][(vrpc_hit_layer1[l1].bx+2)][vrpc_hit_layer1[l1].roll-1][vrpc_hit_layer1[l1].strip];
+                   RPCHitCleaner::detId_Ext tmp{vrpc_hit_layer1[l1].detid,vrpc_hit_layer1[l1].bx,vrpc_hit_layer1[l1].strip};
+                   int id = hits[tmp];
+
                    if(vcluster_size[id]==2 && itr1==0) {
                      itr1++;
                      continue;
@@ -153,7 +163,9 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
             itr1 = 0;
             for(unsigned int l2=0; l2<vrpc_hit_layer2.size(); l2++){
                 if(vrpc_hit_layer2[l2].station!=st || st>2 || vrpc_hit_layer2[l2].sector!=sec || vrpc_hit_layer2[l2].wheel!=wh) continue;
-                int id = hits[vrpc_hit_layer2[l2].wheel+2][(vrpc_hit_layer2[l2].station-1)][(vrpc_hit_layer2[l2].sector-1)][(vrpc_hit_layer2[l2].layer-1)][(vrpc_hit_layer2[l2].bx+2)][vrpc_hit_layer2[l2].roll-1][vrpc_hit_layer2[l2].strip];
+                RPCHitCleaner::detId_Ext tmp{vrpc_hit_layer2[l2].detid,vrpc_hit_layer2[l2].bx,vrpc_hit_layer2[l2].strip};
+                int id = hits[tmp];
+//                int id = hits[vrpc_hit_layer2[l2].wheel+2][(vrpc_hit_layer2[l2].station-1)][(vrpc_hit_layer2[l2].sector-1)][(vrpc_hit_layer2[l2].layer-1)][(vrpc_hit_layer2[l2].bx+2)][vrpc_hit_layer2[l2].roll-1][vrpc_hit_layer2[l2].strip];
                 if(vcluster_size[id]==2 && itr1==0) {
                   itr1++;
                   continue;
@@ -174,7 +186,9 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
             for(unsigned int l1=0; l1<vrpc_hit_st3.size(); l1++){
 
                         if(st!=3 || vrpc_hit_st3[l1].station!=3 || vrpc_hit_st3[l1].wheel!=wh || vrpc_hit_st3[l1].sector!=sec) continue;
-                        int id = hits[vrpc_hit_st3[l1].wheel+2][(vrpc_hit_st3[l1].station-1)][(vrpc_hit_st3[l1].sector-1)][(vrpc_hit_st3[l1].layer-1)][(vrpc_hit_st3[l1].bx+2)][vrpc_hit_st3[l1].roll-1][vrpc_hit_st3[l1].strip];
+                        RPCHitCleaner::detId_Ext tmp{vrpc_hit_st3[l1].detid,vrpc_hit_st3[l1].bx,vrpc_hit_st3[l1].strip};
+                        int id = hits[tmp];
+                        //int id = hits[vrpc_hit_st3[l1].wheel+2][(vrpc_hit_st3[l1].station-1)][(vrpc_hit_st3[l1].sector-1)][(vrpc_hit_st3[l1].layer-1)][(vrpc_hit_st3[l1].bx+2)][vrpc_hit_st3[l1].roll-1][vrpc_hit_st3[l1].strip];
                         if(vcluster_size[id]==2 && itr1==0) {
                           itr1++;
                           continue;
@@ -194,7 +208,9 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
 
             for(unsigned int l1=0; l1<vrpc_hit_st4.size(); l1++){
                         if(st!=4 || vrpc_hit_st4[l1].station!=4 || vrpc_hit_st4[l1].wheel!=wh || vrpc_hit_st4[l1].sector!=sec) continue;
-                        int id = hits[vrpc_hit_st4[l1].wheel+2][(vrpc_hit_st4[l1].station-1)][(vrpc_hit_st4[l1].sector-1)][(vrpc_hit_st4[l1].layer-1)][(vrpc_hit_st4[l1].bx+2)][vrpc_hit_st4[l1].roll-1][vrpc_hit_st4[l1].strip];
+                        //int id = hits[vrpc_hit_st4[l1].wheel+2][(vrpc_hit_st4[l1].station-1)][(vrpc_hit_st4[l1].sector-1)][(vrpc_hit_st4[l1].layer-1)][(vrpc_hit_st4[l1].bx+2)][vrpc_hit_st4[l1].roll-1][vrpc_hit_st4[l1].strip];
+                        RPCHitCleaner::detId_Ext tmp{vrpc_hit_st4[l1].detid,vrpc_hit_st4[l1].bx,vrpc_hit_st4[l1].strip};
+                        int id = hits[tmp];
                         if(vcluster_size[id]==2 && itr1==0) {
                           itr1++;
                           continue;

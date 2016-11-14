@@ -45,17 +45,16 @@ public:
 
 private:
   int sign(float);
+  int flipBit(int);
   void BxCorrection(int track_seg);
 
   std::vector<int> concat_delta(std::vector<int>, std::vector<int>, std::vector<int>);
-  enum SHIFT {OWN = 0, PLUS = 1, MINUS = -1, UNDEF = 0};
-  SHIFT m_shift;
 
   L1MuDTChambPhContainer m_phiDTDigis;
   L1MuDTChambPhContainer m_phiRPCDigis;
   L1MuDTChambPhContainer m_dt_tsshifted;
 
-  std::vector<L1MuDTChambPhDigi> l1ttma_out;
+  std::vector<L1MuDTChambPhDigi> m_l1ttma_out;
 
   int m_QualityLimit;
   int m_DphiWindow;

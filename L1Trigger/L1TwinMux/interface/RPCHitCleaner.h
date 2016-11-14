@@ -36,6 +36,15 @@ public:
 
  ///Return Output RPCCollection
  RPCDigiCollection getRPCCollection(){  return m_outrpcDigis;}
+ 
+ struct detId_Ext{
+   RPCDetId detid;
+   int bx;
+   int strip;
+   bool const operator<(const detId_Ext &o) const {
+       return strip < o.strip || (strip == o.strip && detid < o.detid)|| ( bx < o.bx && strip == o.strip && detid == o.detid);
+   }
+ };
 
 private:
 
@@ -43,6 +52,7 @@ private:
   RPCDigiCollection m_inrpcDigis;
   ///Output
   RPCDigiCollection m_outrpcDigis;
+
 
 };
 #endif
