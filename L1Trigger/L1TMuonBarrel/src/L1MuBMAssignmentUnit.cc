@@ -178,13 +178,11 @@ void L1MuBMAssignmentUnit::PhiAU(const edm::EventSetup& c) {
   if ( second == 0 && first ) {
     int bend_angle = (first->phib() >> sh_phib) << sh_phib;
     phi_8 = phi_8 + thePhiLUTs->getDeltaPhi(0,bend_angle);
-    //phi_8 = phi_8 + getDeltaPhi(0, bend_angle, bmtfParams->phi_lut());
   }
   else if ( second == 0 && forth ) {
 
     int bend_angle = (forth->phib() >> sh_phib) << sh_phib;
     phi_8 = phi_8 + thePhiLUTs->getDeltaPhi(1,bend_angle);
-    //phi_8 = phi_8 + getDeltaPhi(1, bend_angle, bmtfParams->phi_lut());
   }
 
   //If muon is found at the neighbour sector - second station
@@ -192,8 +190,8 @@ void L1MuBMAssignmentUnit::PhiAU(const edm::EventSetup& c) {
   phi_8 += sectordiff*48;
 
   int phi = phi_8 + 24;
-  if (phi >  55) phi =  55;
-  if (phi < -8) phi = -8;
+  //if (phi >  55) phi =  55;
+  //if (phi < -8) phi = -8;
 
   m_sp.track(m_id)->setPhi(phi); // Regional
   m_sp.tracK(m_id)->setPhi(phi);
@@ -214,7 +212,6 @@ void L1MuBMAssignmentUnit::PtAU(const edm::EventSetup& c) {
   thePtaLUTs =  new L1MuBMLUTHandler(bmtfParams);   ///< pt-assignment look-up tables
   //thePtaLUTs->print();
   // get pt-assignment method as function of track class and TS phib values
-  //m_ptAssMethod = getPtMethod(bmtfParams);
   m_ptAssMethod = getPtMethod();
   // get input address for look-up table
   int bend_angle = getPtAddress(m_ptAssMethod);
@@ -223,7 +220,6 @@ void L1MuBMAssignmentUnit::PtAU(const edm::EventSetup& c) {
   // retrieve pt value from look-up table
   int lut_idx = m_ptAssMethod;
   int pt = thePtaLUTs->getPt(lut_idx,bend_angle );
-  //int pt = getPt(lut_idx, bend_angle, bmtfParams->pta_lut());
 
 if(!bmtfParams.get_DisableNewAlgo()){
 
