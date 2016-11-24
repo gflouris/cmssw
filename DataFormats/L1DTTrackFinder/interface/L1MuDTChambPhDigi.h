@@ -56,6 +56,11 @@ class L1MuDTChambPhDigi {
   int BxCnt()       const;
   int RpcBit()      const;
 
+  /// Set functions
+  void setBxNum(int inv) { bx = inv; };
+  void setRpcBit(int inv) { rpcBit = inv; };
+  void setCode(int inv) { qualityCode = inv; };
+
  private:
 
   int bx;
