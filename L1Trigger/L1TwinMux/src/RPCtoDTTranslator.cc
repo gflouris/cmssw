@@ -128,6 +128,7 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         if(vrpc_hit_layer1[l1].station!=st || vrpc_hit_layer2[l2].station!=st ) continue;
                         if(vrpc_hit_layer1[l1].sector!=sec || vrpc_hit_layer2[l2].sector!=sec ) continue;
                         if(vrpc_hit_layer1[l1].wheel!=wh || vrpc_hit_layer2[l2].wheel!=wh ) continue;
+                        if(vrpc_hit_layer1[l1].bx!=vrpc_hit_layer2[l2].bx ) continue;
 
                          RPCHitCleaner::detId_Ext tmp{vrpc_hit_layer2[l2].detid,vrpc_hit_layer2[l2].bx,vrpc_hit_layer2[l2].strip};
                          int id = hits[tmp];
@@ -152,8 +153,17 @@ void RPCtoDTTranslator::run(const edm::EventSetup& c) {
                         //int xout = localX(vrpc_hit_layer2[l2].detid, c, vrpc_hit_layer2[l2].strip);
                         //cout<<(phi1<<2)<<"   "<<l1<<"   "<<vrpc_hit_layer1[l1].station<<endl;
                         //cout<<(phi2<<2)<<"   "<<l1<<"   "<<vrpc_hit_layer1[l1].station<<endl;
-                        int xin = localXX((phi1<<2), 1, vrpc_hit_layer1[l1].station);
+                        int xin = localXX((phi1<<2), 1, vrpc_hit_layer1[l1].station );
                         int xout = localXX((phi2<<2), 2, vrpc_hit_layer2[l2].station);
+                        if(vcluster_size[id]==2 && itr2==1) {
+                          int phi1_n1 = radialAngle(vrpc_hit_layer1[l1-1].detid, c, vrpc_hit_layer1[l1-1].strip);
+                          int phi2_n1 = radialAngle(vrpc_hit_layer2[l2-1].detid, c, vrpc_hit_layer2[l2-1].strip);
+
+                          xin += localXX((phi1_n1<<2), 1, vrpc_hit_layer1[l1].station );
+                          xout += localXX((phi2_n1<<2), 2, vrpc_hit_layer2[l2].station );
+                          xin /= 2;
+                          xout /= 2;
+                       }
                         //cout<<">>"<<xin<<"   "<<xout<<endl;
 
                         int phi_b = bendingAngle(xin,xout,average);
@@ -296,8 +306,8 @@ int RPCtoDTTranslator::radialAngle(RPCDetId detid,const edm::EventSetup& c, int 
     int sector = (roll->id()).sector();
     if ( sector == 1) radialAngle = int( globalphi*1024 );
     else {
-        if ( globalphi >= 0) radialAngle = int( (globalphi-(sector-1)*Geom::pi()/6)*1024 );
-        else radialAngle = int( (globalphi+(13-sector)*Geom::pi()/6)*1024 );
+        if ( globalphi >= 0) radialAngle = int( (globalphi-(sector-1)*Geom::pi()/6.)*1024 );
+        else radialAngle = int( (globalphi+(13-sector)*Geom::pi()/6.)*1024 );
     }
     return radialAngle;
 }
@@ -322,6 +332,7 @@ int RPCtoDTTranslator::localX(RPCDetId detid, const edm::EventSetup& c, int stri
 
 int RPCtoDTTranslator::bendingAngle(int xin, int xout, int phi){
     int atanv = (int)(atan((xout-xin)/34.6) * 512);
+    if(atanv>512) return 512;
     int rvalue = atanv - phi/8;
     return rvalue;
 }
@@ -331,5 +342,4 @@ int RPCtoDTTranslator::localXX(int phi, int layer, int station){
   double R[2][2] = {{410.0,444.8},{492.7,527.3}};
   double rvalue = R[station-1][layer-1]*tan(phi/4096.);
   return rvalue;
-
 }
