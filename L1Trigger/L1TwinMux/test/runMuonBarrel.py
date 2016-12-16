@@ -39,6 +39,17 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
 )
 
 
+process.load('L1Trigger.L1TwinMux.fakeTwinMuxParams_cff')
+process.esProdTM = cms.EDAnalyzer("EventSetupRecordDataGetter",
+   toGet = cms.VPSet(
+      cms.PSet(record = cms.string('L1TwinMuxParamsRcd'),
+               data = cms.vstring('L1TwinMuxParams'))
+              ),
+   verbose = cms.untracked.bool(True)
+)
+
+
+
 ####BMTF Emulator
 process.load('L1Trigger.L1TwinMux.simTwinMuxDigis_cfi')
 process.load('L1Trigger.L1TMuonBarrel.simBmtfDigis_cfi')
@@ -54,7 +65,7 @@ process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( process.esProd         
-#				   + process.esProdTM 
+				   + process.esProdTM 
                                    + process.simTwinMuxDigisEmu 
                                    + process.simBmtfDigis 
 #                                   + process.dumpED
