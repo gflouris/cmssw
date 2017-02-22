@@ -16,6 +16,7 @@ class TkHistoMap{
 
  public:
   TkHistoMap(DQMStore::IBooker & ibooker , std::string path, std::string MapName, float baseline=0, bool mechanicalView=false);
+  TkHistoMap(DQMStore::IBooker & ibooker , std::string path, std::string MapName, float baseline, bool mechanicalView, bool isTH2F);
   TkHistoMap(std::string path, std::string MapName, float baseline=0, bool mechanicalView=false);
   TkHistoMap();
   ~TkHistoMap(){};
@@ -43,6 +44,8 @@ class TkHistoMap{
   void dumpInTkMap(TrackerMap* tkmap, bool dumpEntries=false); //dumpEntries==true? (dump entries) : (dump mean values)
   void save(std::string filename);
   void saveAsCanvas(std::string filename,std::string options="", std::string mode="RECREATE");
+//  void setBoolTH2F(bool inv) {isTH2F_ = inv;}
+//  bool getBoolTH2F() {return isTH2F_;}
 
  private:
 
@@ -60,6 +63,7 @@ class TkHistoMap{
   std::vector<MonitorElement*> tkHistoMap_;
   int HistoNumber;
   std::string MapName_;
+  bool isTH2F_ ;
 };
 
 #endif

@@ -17,6 +17,7 @@ TkHistoMap::TkHistoMap(std::string path, std::string MapName,float baseline, boo
   HistoNumber(35),
   MapName_(MapName)
 {
+  isTH2F_ = false;
   cached_detid=0;
   cached_layer=0;
   LogTrace("TkHistoMap") <<"TkHistoMap::constructor with parameters"; 
@@ -28,12 +29,26 @@ TkHistoMap::TkHistoMap(DQMStore::IBooker & ibooker , std::string path, std::stri
   HistoNumber(35),
   MapName_(MapName)
 {
+  isTH2F_ = false;
   cached_detid=0;
   cached_layer=0;
   LogTrace("TkHistoMap") <<"TkHistoMap::constructor with parameters"; 
   loadServices();
   createTkHistoMap(ibooker , path,MapName_, baseline, mechanicalView);
 }
+
+TkHistoMap::TkHistoMap(DQMStore::IBooker & ibooker , std::string path, std::string MapName, float baseline=0, bool mechanicalView=false, bool isTH2F=false){
+  std::cout<<"TH2F constructor"<<std::endl;
+  isTH2F_ = isTH2F;
+  HistoNumber= 35;
+  MapName_ = MapName;
+
+  cached_detid=0;
+  cached_layer=0;
+  LogTrace("TkHistoMap") <<"TkHistoMap::constructor with parameters"; 
+  loadServices();
+  createTkHistoMap(ibooker , path,MapName_, baseline, mechanicalView);
+  };    
 
 void TkHistoMap::loadServices(){
   if(!edm::Service<DQMStore>().isAvailable()){
@@ -84,15 +99,31 @@ void TkHistoMap::createTkHistoMap(std::string& path, std::string& MapName, float
   double lowX,highX;
   double lowY, highY;
   std::string fullName, folder;
-
+ 
+  const bool bookTH2F = isTH2F_;
   tkHistoMap_.resize(HistoNumber);    
   for(int layer=1;layer<HistoNumber;++layer){
     folder=folderDefinition(path,MapName,layer,mechanicalView,fullName);
     tkdetmap_->getComponents(layer,nchX,lowX,highX,nchY,lowY,highY);
-    MonitorElement* me  = dqmStore_->bookProfile2D(fullName.c_str(),fullName.c_str(),
+    MonitorElement* me;
+
+    if(bookTH2F==false){
+
+    me  = dqmStore_->bookProfile2D(fullName.c_str(),fullName.c_str(),
 						   nchX,lowX,highX,
 						   nchY,lowY,highY,
                                                    0.0, 0.0);
+     
+                                              
+    }
+    else if(bookTH2F==true){
+
+    me  = dqmStore_->book2D(fullName.c_str(),fullName.c_str(),
+						   nchX,lowX,highX,
+						   nchY,lowY,highY);
+                                                   
+    }
+        
     //initialize bin content for the not assigned bins
     if(baseline!=0){
       for(size_t ix = 1; ix <= (unsigned int) nchX; ++ix)
@@ -116,14 +147,31 @@ void TkHistoMap::createTkHistoMap(DQMStore::IBooker & ibooker , std::string& pat
   double lowY, highY;
   std::string fullName, folder;
 
-  tkHistoMap_.resize(HistoNumber);    
+  tkHistoMap_.resize(HistoNumber);   
+
+  const bool bookTH2F = isTH2F_;
+  std::cout<<"BookTH2F   "<<bookTH2F<<"\t MapName  "<<MapName<<std::endl;
+ 
   for(int layer=1;layer<HistoNumber;++layer){
     folder=folderDefinition(path,MapName,layer,mechanicalView,fullName);
     tkdetmap_->getComponents(layer,nchX,lowX,highX,nchY,lowY,highY);
-    MonitorElement* me  = ibooker.bookProfile2D(fullName.c_str(),fullName.c_str(),
+    MonitorElement* me;
+    if(bookTH2F==false){
+	me  = ibooker.bookProfile2D(fullName.c_str(),fullName.c_str(),
 						nchX,lowX,highX,
 						nchY,lowY,highY,
 						0.0, 0.0);
+    }
+    if(bookTH2F==true){
+        me  = dqmStore_->book2D(fullName.c_str(),fullName.c_str(),
+                                                   nchX,lowX,highX,
+                                                   nchY,lowY,highY);
+
+    }
+
+
+
+
     //initialize bin content for the not assigned bins
     if(baseline!=0){
       for(size_t ix = 1; ix <= (unsigned int) nchX; ++ix)
@@ -183,7 +231,10 @@ void TkHistoMap::fill(uint32_t& detid,float value){
 #ifdef debug_TkHistoMap
   LogTrace("TkHistoMap") << "[TkHistoMap::fill] Fill detid " << detid << " Layer " << layer << " value " << value << " ix,iy "  << xybin.ix << " " << xybin.iy  << " " << xybin.x << " " << xybin.y << " " << tkHistoMap_[layer]->getTProfile2D()->GetName();
 #endif
-  tkHistoMap_[layer]->getTProfile2D()->Fill(xybin.x,xybin.y,value);
+  if(tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TPROFILE2D)
+    tkHistoMap_[layer]->getTProfile2D()->Fill(xybin.x,xybin.y,value);
+  else if (tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TH2F)
+      tkHistoMap_[layer]->getTH2F()->Fill(xybin.x,xybin.y,value);
 
 #ifdef debug_TkHistoMap
   LogTrace("TkHistoMap") << "[TkHistoMap::fill] " << tkHistoMap_[layer]->getTProfile2D()->GetBinContent(xybin.ix,xybin.iy);
@@ -196,8 +247,14 @@ void TkHistoMap::fill(uint32_t& detid,float value){
 void TkHistoMap::setBinContent(uint32_t& detid,float value){
   int16_t layer=tkdetmap_->FindLayer(detid , cached_detid , cached_layer , cached_XYbin);
   TkLayerMap::XYbin xybin = tkdetmap_->getXY(detid , cached_detid , cached_layer , cached_XYbin);
-  tkHistoMap_[layer]->getTProfile2D()->SetBinEntries(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy),1);
-  tkHistoMap_[layer]->getTProfile2D()->SetBinContent(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy),value);
+  if(tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TPROFILE2D){
+    tkHistoMap_[layer]->getTProfile2D()->SetBinEntries(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy),1);
+    tkHistoMap_[layer]->getTProfile2D()->SetBinContent(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy),value);
+  }
+  else if (tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TH2F){
+    //tkHistoMap_[layer]->getTH2F()->SetBinEntries(tkHistoMap_[layer]->getTH2F()->GetBin(xybin.ix,xybin.iy),1);
+    tkHistoMap_[layer]->getTH2F()->SetBinContent(xybin.ix,xybin.iy,value);
+  }
 
 #ifdef debug_TkHistoMap
   LogTrace("TkHistoMap") << "[TkHistoMap::setbincontent]  setBinContent detid " << detid << " Layer " << layer << " value " << value << " ix,iy "  << xybin.ix << " " << xybin.iy  << " " << xybin.x << " " << xybin.y << " " << tkHistoMap_[layer]->getTProfile2D()->GetName() << " bin " << tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy);
@@ -216,19 +273,28 @@ void TkHistoMap::add(uint32_t& detid,float value){
 #endif
   int16_t layer=tkdetmap_->FindLayer(detid , cached_detid , cached_layer , cached_XYbin);
   TkLayerMap::XYbin xybin = tkdetmap_->getXY(detid , cached_detid , cached_layer , cached_XYbin);
-  setBinContent(detid,tkHistoMap_[layer]->getTProfile2D()->GetBinContent(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy))+value);
-  
+  if(tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TPROFILE2D)
+    setBinContent(detid,tkHistoMap_[layer]->getTProfile2D()->GetBinContent(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy))+value);
+  else if (tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TH2F)
+     setBinContent(detid,tkHistoMap_[layer]->getTH2F()->GetBinContent(tkHistoMap_[layer]->getTH2F()->GetBin(xybin.ix,xybin.iy))+value);
 }
 
 float TkHistoMap::getValue(uint32_t& detid){
   int16_t layer=tkdetmap_->FindLayer(detid , cached_detid , cached_layer , cached_XYbin);
   TkLayerMap::XYbin xybin = tkdetmap_->getXY(detid , cached_detid , cached_layer , cached_XYbin);
-  return tkHistoMap_[layer]->getTProfile2D()->GetBinContent(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy));
+    
+  if (tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TH2F)
+    return tkHistoMap_[layer]->getTH2F()->GetBinContent(tkHistoMap_[layer]->getTH2F()->GetBin(xybin.ix,xybin.iy));
+  else 
+      return tkHistoMap_[layer]->getTProfile2D()->GetBinContent(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy));
 }
 float TkHistoMap::getEntries(uint32_t& detid){
   int16_t layer=tkdetmap_->FindLayer(detid , cached_detid , cached_layer , cached_XYbin);
   TkLayerMap::XYbin xybin = tkdetmap_->getXY(detid , cached_detid , cached_layer , cached_XYbin);
-  return tkHistoMap_[layer]->getTProfile2D()->GetBinEntries(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy));
+  if (tkHistoMap_[layer]->kind() == MonitorElement::DQM_KIND_TH2F)
+    return 1;
+  else
+    return tkHistoMap_[layer]->getTProfile2D()->GetBinEntries(tkHistoMap_[layer]->getTProfile2D()->GetBin(xybin.ix,xybin.iy));
 }
 
 void TkHistoMap::dumpInTkMap(TrackerMap* tkmap,bool dumpEntries){
