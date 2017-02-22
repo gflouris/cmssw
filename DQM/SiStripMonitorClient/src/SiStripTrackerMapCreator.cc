@@ -489,13 +489,7 @@ void SiStripTrackerMapCreator::paintTkMapFromHistogram(DQMStore* dqm_store, Moni
     nDet++;
     const TkLayerMap::XYbin& xyval = tkDetMap_->getXY(det_id , cached_detid , cached_layer , cached_XYbin);
     float fval = 0.0;
-    if ( (name.find("NumberOfOff") != std::string::npos) || //temporary fix 
-         (name.find("NumberOfOnTrackCluster") != std::string::npos) ) {
-      if (me->kind() == MonitorElement::DQM_KIND_TPROFILE2D) {   
-	TProfile2D* tp = me->getTProfile2D() ;
-	fval =  tp->GetBinEntries(tp->GetBin(xyval.ix, xyval.iy)) * tp->GetBinContent(xyval.ix, xyval.iy);
-      }
-    } else  fval = me->getBinContent(xyval.ix, xyval.iy);
+    fval = me->getBinContent(xyval.ix, xyval.iy);
     if (htype == "QTestAlarm") {
       edm::LogError("ItShouldNotBeHere") << "QTestAlarm map: you should not be here!";
       /*
