@@ -9,13 +9,13 @@ TkHistoMap::TkHistoMap()
   init();
 }
 
-TkHistoMap::TkHistoMap(std::string path, std::string MapName,float baseline, bool mechanicalView):
-  MapName_(MapName)
-{
-  LogTrace("TkHistoMap") <<"TkHistoMap::constructor with parameters";
-  init();
-  createTkHistoMap(path,MapName_, baseline, mechanicalView);
-}
+// TkHistoMap::TkHistoMap(std::string path, std::string MapName,float baseline, bool mechanicalView):
+//   MapName_(MapName)
+// {
+//   LogTrace("TkHistoMap") <<"TkHistoMap::constructor with parameters";
+//   init();
+//   createTkHistoMap(path,MapName_, baseline, mechanicalView);
+// }
 
 TkHistoMap::TkHistoMap(DQMStore::IBooker & ibooker , std::string path, std::string MapName,float baseline, bool mechanicalView):
   MapName_(MapName)
@@ -83,7 +83,7 @@ void TkHistoMap::loadTkHistoMap(std::string path, std::string MapName, bool mech
 #endif
   }
 }
-
+/*
 void TkHistoMap::createTkHistoMap(std::string& path, std::string& MapName, float& baseline, bool mechanicalView){
 
   int nchX;
@@ -130,7 +130,7 @@ void TkHistoMap::createTkHistoMap(std::string& path, std::string& MapName, float
 #endif
   }
 }
-
+*/
 void TkHistoMap::createTkHistoMap(DQMStore::IBooker & ibooker , std::string& path, std::string& MapName, float& baseline, bool mechanicalView){
 
   int nchX;
