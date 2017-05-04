@@ -4,7 +4,7 @@
 //
 // Package:     SiStripMonitorSummary
 // Class  :     SiStripMonitorCondDataOnDemandExample
-// 
+//
 // Original Author:  Evelyne Delmeire
 //
 
@@ -14,39 +14,38 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "boost/cstdint.hpp"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+
 #include <iostream>
 #include <string>
-#include <vector>
 
 class SiStripClassToMonitorCondData;
 
-class SiStripMonitorCondDataOnDemandExample : public edm::EDAnalyzer {
- 
+class SiStripMonitorCondDataOnDemandExample : public DQMEDAnalyzer {
+
  public:
- 
+
    explicit SiStripMonitorCondDataOnDemandExample(const edm::ParameterSet&);
- 
+
    ~SiStripMonitorCondDataOnDemandExample();
-   
-   virtual void beginJob() ;  
-   virtual void beginRun(edm::Run const& run, edm::EventSetup const& eSetup);
+
+   virtual void beginJob() ;
+   void dqmBeginRun(edm::Run const& run, edm::EventSetup const& eSetup) override;
    virtual void analyze(const edm::Event&, const edm::EventSetup&);
    virtual void endRun(edm::Run const& run, edm::EventSetup const& eSetup);
-   virtual void endJob() ;
-  
-   
-  
- private: 
-  int eventCounter_; 
+   void bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup);
+
+
+ private:
+  int eventCounter_;
   edm::ParameterSet conf_;
   SiStripClassToMonitorCondData*    condDataMonitoring_ ;
 

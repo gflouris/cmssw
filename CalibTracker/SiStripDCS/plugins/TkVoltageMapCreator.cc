@@ -20,27 +20,29 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "DQM/SiStripCommon/interface/TkHistoMap.h" 
+#include "DQM/SiStripCommon/interface/TkHistoMap.h"
 #include "CommonTools/TrackerMap/interface/TrackerMap.h"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 //
 // class decleration
 //
 
-class TkVoltageMapCreator : public edm::EDAnalyzer {
+class TkVoltageMapCreator : public DQMEDAnalyzer {
  public:
     explicit TkVoltageMapCreator(const edm::ParameterSet&);
     ~TkVoltageMapCreator();
 
 
    private:
-      virtual void beginJob() override ;
-      virtual void beginRun(const edm::Run&, const edm::EventSetup&) override ;
-      virtual void endRun(const edm::Run&, const edm::EventSetup&) override ;
+      virtual void dqmBeginRun(const edm::Run&, const edm::EventSetup&) override ;
+      virtual void endRun(const edm::Run&, const edm::EventSetup&);
       virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-      virtual void endJob() override ;
+      void bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup);
 
       // ----------member data ---------------------------
+  TkHistoMap* _lvhisto;
+  TkHistoMap* _hvhisto;
 
   const std::string _lvfile;
   const std::string _lvtkmapname;
@@ -73,10 +75,17 @@ TkVoltageMapCreator::TkVoltageMapCreator(const edm::ParameterSet& iConfig):
 
 TkVoltageMapCreator::~TkVoltageMapCreator()
 {
- 
+
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
+   delete _lvhisto;
+   delete _hvhisto;
 
+}
+
+void TkVoltageMapCreator::bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup){
+   _lvhisto = new TkHistoMap(ibooker,"LV_Status","LV_Status",-1);
+   _hvhisto = new TkHistoMap(ibooker,"HV_Status","HV_Status",-1);
 }
 
 
@@ -88,18 +97,9 @@ TkVoltageMapCreator::~TkVoltageMapCreator()
 void
 TkVoltageMapCreator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   using namespace edm;
 
-}
-
-void 
-TkVoltageMapCreator::beginRun(const edm::Run& iRun, const edm::EventSetup&)
-{
   TrackerMap lvmap,hvmap;
 
-  TkHistoMap lvhisto("LV_Status","LV_Status",-1);
-  TkHistoMap hvhisto("HV_Status","HV_Status",-1);
-  
   std::ifstream lvdata(_lvfile.c_str());
   std::ifstream hvdata(_hvfile.c_str());
 
@@ -107,54 +107,48 @@ TkVoltageMapCreator::beginRun(const edm::Run& iRun, const edm::EventSetup&)
 
   unsigned int detid;
   std::string lvstatus;
-  
+
   while(lvdata >> detid >> lvstatus) {
     double cha =0.;
     if(lvstatus=="ON") cha = 0.5; //GREEN
     if(lvstatus=="OFF") cha = 1.; //RED
-    lvhisto.fill(detid,cha);
+    _lvhisto->fill(detid,cha);
   }
-  
+
   std::string hvstatus;
 
   while(hvdata >> detid >> hvstatus) {
     double cha =0.;
     if(hvstatus=="ON") cha = 0.5; //GREEN
     if(hvstatus=="OFF") cha = 1.; //RED
-    hvhisto.fill(detid,cha);
+    _hvhisto->fill(detid,cha);
   }
 
   lvmap.setPalette(1);
   hvmap.setPalette(1);
 
-  lvhisto.dumpInTkMap(&lvmap);
-  hvhisto.dumpInTkMap(&hvmap);
+  _lvhisto->dumpInTkMap(&lvmap);
+  _hvhisto->dumpInTkMap(&hvmap);
 
   lvmap.save(true,0,0,_lvtkmapname);
   hvmap.save(true,0,0,_hvtkmapname);
 
   //TODO could make the root file name a parameter to avoid overwriting everytime...
   std::string rootmapname = "VoltageStatus.root";
-  lvhisto.save(rootmapname);
-  hvhisto.save(rootmapname);
+  _lvhisto->save(rootmapname);
+  _hvhisto->save(rootmapname);
 }
 
-void 
+void
+TkVoltageMapCreator::dqmBeginRun(const edm::Run& iRun, const edm::EventSetup&)
+{
+
+}
+
+void
 TkVoltageMapCreator::endRun(const edm::Run& iRun, const edm::EventSetup&)
 {
 }
-
-
-// ------------ method called once each job just before starting event loop  ------------
-void 
-TkVoltageMapCreator::beginJob()
-{
-
-}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-TkVoltageMapCreator::endJob() {}
 
 
 //define this as a plug-in

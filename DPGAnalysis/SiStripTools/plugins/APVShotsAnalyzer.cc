@@ -61,24 +61,23 @@
 #include "CondFormats/SiStripObjects/interface/FedChannelConnection.h"
 #include "DataFormats/SiStripCommon/interface/SiStripConstants.h"
 //***************************************************
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 
 //
 // class decleration
 //
 
-class APVShotsAnalyzer : public edm::EDAnalyzer {
+class APVShotsAnalyzer : public DQMEDAnalyzer {
 public:
   explicit APVShotsAnalyzer(const edm::ParameterSet&);
   ~APVShotsAnalyzer();
 
-
 private:
-  virtual void beginJob() override ;
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&) override;
-  virtual void endRun(const edm::Run&, const edm::EventSetup&) override;
+  virtual void dqmBeginRun(const edm::Run&, const edm::EventSetup&) override;
+  virtual void endRun(const edm::Run&, const edm::EventSetup&);
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  virtual void endJob() override ;
+  void bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup);
 
   void updateDetCabling( const edm::EventSetup& setup );
 
@@ -120,7 +119,8 @@ private:
   TH1F** _subDetectorrun;
   TH1F** _fedrun;
 
-  TkHistoMap *tkhisto,*tkhisto2;
+  TkHistoMap* tkhisto;
+  TkHistoMap* tkhisto2;
 
   // DetCabling
   bool _useCabling;
@@ -217,8 +217,6 @@ APVShotsAnalyzer::APVShotsAnalyzer(const edm::ParameterSet& iConfig):
    _medianVsFED->GetXaxis()->SetTitle("fedId");_medianVsFED->GetYaxis()->SetTitle("Charge [ADC]");  _median->GetZaxis()->SetTitle("Shots");
  }
 
- tkhisto      =new TkHistoMap("ShotMultiplicity","ShotMultiplicity",-1);
- tkhisto2      =new TkHistoMap("StripMultiplicity","StripMultiplicity",-1);
 }
 
 
@@ -229,6 +227,29 @@ APVShotsAnalyzer::~APVShotsAnalyzer()
    // (e.g. close files, deallocate resources etc.)
   if ( _detCabling ) _detCabling = 0;
 
+  edm::LogInfo("EndOfJob") << _nevents << " analyzed events";
+
+#include "CommonTools/TrackerMap/interface/TrackerMap.h"
+  TrackerMap tkmap,tkmap2;
+
+  tkmap.setPalette(1);
+  tkmap2.setPalette(1);
+  tkhisto->dumpInTkMap(&tkmap);
+  tkhisto2->dumpInTkMap(&tkmap2);
+  std::string tkshotmultmapname = "ShotMultiplicity_" + _suffix + ".png";
+  tkmap.save(true,0,0,tkshotmultmapname);
+  std::string tkstripmultmapname = "StripMultiplicity_" + _suffix + ".png";
+  tkmap2.save(true,0,0,tkstripmultmapname);
+
+  std::string rootmapname = "TKMap_"+_suffix+".root";
+  tkhisto->save(rootmapname);
+  tkhisto2->save(rootmapname);
+
+}
+
+void APVShotsAnalyzer::bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup){
+   tkhisto      = new TkHistoMap(ibooker,"ShotMultiplicity","ShotMultiplicity",-1);
+   tkhisto2     = new TkHistoMap(ibooker,"StripMultiplicity","StripMultiplicity",-1);
 }
 
 
@@ -392,7 +413,7 @@ APVShotsAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 }
 
 void
-APVShotsAnalyzer::beginRun(const edm::Run& iRun, const edm::EventSetup&)
+APVShotsAnalyzer::dqmBeginRun(const edm::Run& iRun, const edm::EventSetup&)
 {
 
 
@@ -436,38 +457,6 @@ void
 APVShotsAnalyzer::endRun(const edm::Run& iRun, const edm::EventSetup&)
 {
 }
-
-
-// ------------ method called once each job just before starting event loop  ------------
-void
-APVShotsAnalyzer::beginJob()
-{
-
-}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void
-APVShotsAnalyzer::endJob() {
-
-  edm::LogInfo("EndOfJob") << _nevents << " analyzed events";
-
-#include "CommonTools/TrackerMap/interface/TrackerMap.h"
-  TrackerMap tkmap,tkmap2;
-
-  tkmap.setPalette(1);
-  tkmap2.setPalette(1);
-  tkhisto->dumpInTkMap(&tkmap);
-  tkhisto2->dumpInTkMap(&tkmap2);
-  std::string tkshotmultmapname = "ShotMultiplicity_" + _suffix + ".png";
-  tkmap.save(true,0,0,tkshotmultmapname);
-  std::string tkstripmultmapname = "StripMultiplicity_" + _suffix + ".png";
-  tkmap2.save(true,0,0,tkstripmultmapname);
-
-  std::string rootmapname = "TKMap_"+_suffix+".root";
-  tkhisto->save(rootmapname);
-  tkhisto2->save(rootmapname);
-}
-
 
 void APVShotsAnalyzer::updateDetCabling( const edm::EventSetup& setup )
 {

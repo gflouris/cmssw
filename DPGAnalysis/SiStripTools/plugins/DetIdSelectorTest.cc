@@ -2,7 +2,7 @@
 //
 // Package:    SiStripTools
 // Class:      DetIdSelectorTest
-// 
+//
 /**\class DetIdSelectorTest DetIdSelectorTest.cc DPGAnalysis/SiStripTools/plugins/DetIdSelectorTest.cc
 
  Description: <one line class summary>
@@ -47,33 +47,33 @@
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 
 //******** Single include for the TkMap *************
-#include "DQM/SiStripCommon/interface/TkHistoMap.h" 
+#include "DQM/SiStripCommon/interface/TkHistoMap.h"
 #include "CommonTools/TrackerMap/interface/TrackerMap.h"
 //***************************************************
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 //
 // class decleration
 //
 
-class DetIdSelectorTest : public edm::EDAnalyzer {
+class DetIdSelectorTest : public DQMEDAnalyzer {
 public:
   explicit DetIdSelectorTest(const edm::ParameterSet&);
   ~DetIdSelectorTest();
 
 
 private:
-  virtual void beginJob() override ;
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  virtual void endJob() override ;
+  void bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup);
 
       // ----------member data ---------------------------
 
 
   std::vector<DetIdSelector> detidsels_;
-  TkHistoMap *tkhisto_;
+  TkHistoMap* tkhisto_;
   TrackerMap tkmap_;
 
-  
+
 };
 
 //
@@ -88,7 +88,7 @@ private:
 // constructors and destructor
 //
 DetIdSelectorTest::DetIdSelectorTest(const edm::ParameterSet& iConfig):
-  detidsels_(), tkhisto_(new TkHistoMap("SelectorTest","SelectorTest",-1)),tkmap_()
+  detidsels_(), tkmap_()
 {
    //now do what ever initialization is needed
 
@@ -107,12 +107,24 @@ DetIdSelectorTest::DetIdSelectorTest(const edm::ParameterSet& iConfig):
 
 DetIdSelectorTest::~DetIdSelectorTest()
 {
- 
+
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
+   //  tkhisto_->dumpInTkMap(&tkmap);
+   std::string mapname = "SelectorTest.png";
+   tkmap_.save(true,0,0,mapname,5700,2400);
+
+   std::string rootmapname = "TKMap_Selectortest.root";
+   tkhisto_->save(rootmapname);
+
+   delete tkhisto_;
 
 }
 
+
+void DetIdSelectorTest::bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup){
+   tkhisto_     = new TkHistoMap(ibooker,"SelectorTest","SelectorTest",-1);
+}
 
 //
 // member functions
@@ -123,17 +135,17 @@ void
 DetIdSelectorTest::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
-   
+
    {
      SiStripDetInfoFileReader * reader=edm::Service<SiStripDetInfoFileReader>().operator->();
-     
+
      //   SiStripDetInfoFileReader reader(edm::FileInPath("CalibTracker/SiStripCommon/data/SiStripDetInfo.dat"));
      //   SiStripDetInfoFileReader reader;
-     
+
      const std::vector<uint32_t>& detids = reader->getAllDetIds();
-     
+
      for(std::vector<uint32_t>::const_iterator detid=detids.begin();detid!=detids.end();++detid) {
-       
+
        LogDebug("DetID") << *detid;
        int index=0;
        for(std::vector<DetIdSelector>::const_iterator detidsel=detidsels_.begin();detidsel!=detidsels_.end();++detidsel) {
@@ -145,18 +157,18 @@ DetIdSelectorTest::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	 }
 	 ++index;
        }
-       
+
      }
    }
 
    {
      edm::FileInPath fp("CalibTracker/SiPixelESProducers/data/PixelSkimmedGeometry.txt");
-     
+
      SiPixelDetInfoFileReader pxlreader(fp.fullPath());
      const std::vector<uint32_t>& detids = pxlreader.getAllDetIds();
-     
+
      for(std::vector<uint32_t>::const_iterator detid=detids.begin();detid!=detids.end();++detid) {
-       
+
        LogDebug("DetID") << *detid;
        int index=0;
        for(std::vector<DetIdSelector>::const_iterator detidsel=detidsels_.begin();detidsel!=detidsels_.end();++detidsel) {
@@ -168,17 +180,17 @@ DetIdSelectorTest::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	 }
 	 ++index;
        }
-       
+
      }
    }
-    
- 
+
+
    /*
      edm::ESHandle<TrackerGeometry> pDD;
      iSetup.get<TrackerDigiGeometryRecord>().get( pDD );
-     
+
      for (TrackerGeometry::DetContainer::const_iterator it = pDD->dets().begin(); it != pDD->dets().end(); it++){
-     
+
      if(dynamic_cast<PixelGeomDetUnit*>((*it))!=0){
      DetId detId = (*it)->geographicalId();
      LogDebug("DetID") << detId.rawId();
@@ -191,33 +203,12 @@ DetIdSelectorTest::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
      }
      ++index;
      }
-     
+
      }
-     
+
      }
-   */   
+   */
 }
-
-// ------------ method called once each job just before starting event loop  ------------
-void 
-DetIdSelectorTest::beginJob()
-{
-
-}
-
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-DetIdSelectorTest::endJob() {
-
-
-  //  tkhisto_->dumpInTkMap(&tkmap);
-  std::string mapname = "SelectorTest.png";
-  tkmap_.save(true,0,0,mapname,5700,2400);
-
-  std::string rootmapname = "TKMap_Selectortest.root";
-  tkhisto_->save(rootmapname);
-}
-
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(DetIdSelectorTest);

@@ -153,6 +153,7 @@ void SiStripMonitorTrack::book(DQMStore::IBooker & ibooker , const TrackerTopolo
   folder_organizer.setSiStripFolderName(topFolderName_);
   //******** TkHistoMaps
   if (TkHistoMap_On_) {
+
     tkhisto_StoNCorrOnTrack = std::make_unique<TkHistoMap>(ibooker , topFolderName_ ,"TkHMap_StoNCorrOnTrack",         0.0,true);
     tkhisto_NumOnTrack      = std::make_unique<TkHistoMap>(ibooker , topFolderName_, "TkHMap_NumberOfOnTrackCluster",  0.0,true, true);
     tkhisto_NumOffTrack     = std::make_unique<TkHistoMap>(ibooker , topFolderName_, "TkHMap_NumberOfOfffTrackCluster",0.0,true, true);
@@ -160,6 +161,7 @@ void SiStripMonitorTrack::book(DQMStore::IBooker & ibooker , const TrackerTopolo
     tkhisto_NumMissingHits      = std::make_unique<TkHistoMap>(ibooker , topFolderName_, "TkHMap_NumberMissingHits",0.0,true, true);
     tkhisto_NumberInactiveHits  = std::make_unique<TkHistoMap>(ibooker , topFolderName_, "TkHMap_NumberInactiveHits",0.0,true, true);
     tkhisto_NumberValidHits     = std::make_unique<TkHistoMap>(ibooker , topFolderName_, "TkHMap_NumberValidHits",0.0,true, true);
+
   }
   if (clchCMoriginTkHmap_On_)
     tkhisto_ClChPerCMfromOrigin = std::make_unique<TkHistoMap>(ibooker , topFolderName_, "TkHMap_ChargePerCMfromOrigin",0.0,true);

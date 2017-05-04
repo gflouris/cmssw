@@ -17,7 +17,7 @@
 #include "DataFormats/SiStripDetId/interface/SiStripSubStructure.h"
 
 
-#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"  
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/StripGeomDetUnit.h"
 
@@ -29,27 +29,29 @@
 #include <sstream>
 
 //******** Single include for the TkMap *************
-#include "DQM/SiStripCommon/interface/TkHistoMap.h" 
+#include "DQM/SiStripCommon/interface/TkHistoMap.h"
 //***************************************************
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 
 //
 // class declaration
 //
 
-class testTkHistoMap : public edm::EDAnalyzer {
+class testTkHistoMap : public DQMEDAnalyzer {
 public:
   explicit testTkHistoMap ( const edm::ParameterSet& );
   ~testTkHistoMap ();
-   
+
   virtual void analyze( const edm::Event&, const edm::EventSetup& );
 
   virtual void endJob(void);
 
 private:
-  
+
   void read();
-  void create(); 
+  void create();
+  void bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup);
 
   bool readFromFile;
   TkHistoMap *tkhisto, *tkhistoBis, *tkhistoZ, *tkhistoPhi, *tkhistoR, *tkhistoCheck;
@@ -66,19 +68,28 @@ testTkHistoMap::testTkHistoMap ( const edm::ParameterSet& iConfig ):
   }
 }
 
+void testTkHistoMap::bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup){
+  tkhisto      =new TkHistoMap(ibooker, "detId","detId",-1);
+  tkhistoBis   =new TkHistoMap(ibooker, "detIdBis","detIdBis",0,1); //here the baseline (the value of the empty,not assigned bins) is put to -1 (default is zero)
+  tkhistoZ     =new TkHistoMap(ibooker, "Zmap","Zmap");
+  tkhistoPhi   =new TkHistoMap(ibooker, "Phi","Phi");
+  tkhistoR     =new TkHistoMap(ibooker, "Rmap","Rmap",-99.); //here the baseline (the value of the empty,not assigned bins) is put to -99 (default is zero)
+  tkhistoCheck =new TkHistoMap(ibooker, "check","check");
+}
 
 void testTkHistoMap::create(){
-  tkhisto      =new TkHistoMap("detId","detId",-1); 
-  tkhistoBis   =new TkHistoMap("detIdBis","detIdBis",0,1); //here the baseline (the value of the empty,not assigned bins) is put to -1 (default is zero)
-  tkhistoZ     =new TkHistoMap("Zmap","Zmap");
-  tkhistoPhi   =new TkHistoMap("Phi","Phi");
-  tkhistoR     =new TkHistoMap("Rmap","Rmap",-99.); //here the baseline (the value of the empty,not assigned bins) is put to -99 (default is zero)
-  tkhistoCheck =new TkHistoMap("check","check");           
+
+  // tkhisto      =new TkHistoMap("detId","detId",-1);
+  // tkhistoBis   =new TkHistoMap("detIdBis","detIdBis",0,1); //here the baseline (the value of the empty,not assigned bins) is put to -1 (default is zero)
+  // tkhistoZ     =new TkHistoMap("Zmap","Zmap");
+  // tkhistoPhi   =new TkHistoMap("Phi","Phi");
+  // tkhistoR     =new TkHistoMap("Rmap","Rmap",-99.); //here the baseline (the value of the empty,not assigned bins) is put to -99 (default is zero)
+  // tkhistoCheck =new TkHistoMap("check","check");
 }
 
 /*Check that is possible to load in tkhistomaps histograms already stored in a DQM root file (if the folder and name are know)*/
 void testTkHistoMap::read(){
-  edm::Service<DQMStore>().operator->()->open("test.root");  
+  edm::Service<DQMStore>().operator->()->open("test.root");
 
   tkhisto      =new TkHistoMap();
   tkhistoBis   =new TkHistoMap();
@@ -87,24 +98,19 @@ void testTkHistoMap::read(){
   tkhistoR     =new TkHistoMap();
   tkhistoCheck =new TkHistoMap();
 
-  tkhisto     ->loadTkHistoMap("detId","detId"); 	    
-  tkhistoBis  ->loadTkHistoMap("detIdBis","detIdBis",1);  
-  tkhistoZ    ->loadTkHistoMap("Zmap","Zmap");		    
-  tkhistoPhi  ->loadTkHistoMap("Phi","Phi");		    
+  tkhisto     ->loadTkHistoMap("detId","detId");
+  tkhistoBis  ->loadTkHistoMap("detIdBis","detIdBis",1);
+  tkhistoZ    ->loadTkHistoMap("Zmap","Zmap");
+  tkhistoPhi  ->loadTkHistoMap("Phi","Phi");
   tkhistoR    ->loadTkHistoMap("Rmap","Rmap");
-  tkhistoCheck->loadTkHistoMap("check","check");            
+  tkhistoCheck->loadTkHistoMap("check","check");
 }
 
 testTkHistoMap::~testTkHistoMap()
 {
-   
+
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
-  
-}
-
-void testTkHistoMap::endJob(void)
-{
   /*Test extraction of detid from histogram title and ix, iy*/
   size_t ilayer=1;
   std::string histoTitle=tkhisto->getMap(ilayer)->getTitle();
@@ -117,7 +123,7 @@ void testTkHistoMap::endJob(void)
   /*Test Drawing functions*/
   TCanvas C("c","c");
   C.Divide(3,3);
-  C.Update(); 
+  C.Update();
   TPostScript ps("test.ps",121);
   ps.NewPage();
   for(size_t ilayer=1;ilayer<34;++ilayer){
@@ -136,27 +142,27 @@ void testTkHistoMap::endJob(void)
     C.Update();
     ps.NewPage();
   }
-  ps.Close();   
+  ps.Close();
 
   if(!readFromFile)
-    edm::Service<DQMStore>().operator->()->save("test.root");  
-  
+    edm::Service<DQMStore>().operator->()->save("test.root");
+
   tkhisto->saveAsCanvas("test.canvas.root","LEGO","RECREATE");
   tkhistoBis->saveAsCanvas("test.canvas.root","LEGO","RECREATE");
   tkhistoZ->saveAsCanvas("test.canvas.root","LEGO","UPDATE");
   tkhistoPhi->saveAsCanvas("test.canvas.root","LEGO","UPDATE");
   tkhistoR->saveAsCanvas("test.canvas.root","LEGO","UPDATE");
   tkhistoCheck->saveAsCanvas("test.canvas.root","LEGO","UPDATE");
-  
+
   /* test Dump in TkMap*/
 #include "CommonTools/TrackerMap/interface/TrackerMap.h"
-  TrackerMap tkmap, tkmapZ, tkmapPhi, tkmapR; 
+  TrackerMap tkmap, tkmapZ, tkmapPhi, tkmapR;
 
   tkmap.setPalette(1);
   tkmapZ.setPalette(2);
   tkmapPhi.setPalette(2);
   tkmapR.setPalette(2);
-  
+
   tkhisto->dumpInTkMap(&tkmap);
   tkhistoZ->dumpInTkMap(&tkmapZ);
   tkhistoPhi->dumpInTkMap(&tkmapPhi);
@@ -168,15 +174,20 @@ void testTkHistoMap::endJob(void)
   tkmapR.save(true,0,0,"testTkMapR.png");
 }
 
+void testTkHistoMap::endJob(void)
+{
+
+}
+
 
 //
 // member functions
 //
 
 // // ------------ method called to produce the data  ------------
-void testTkHistoMap::analyze(const edm::Event& iEvent, 
+void testTkHistoMap::analyze(const edm::Event& iEvent,
 				     const edm::EventSetup& iSetup )
-{   
+{
   if(readFromFile)
     return;
 
@@ -207,9 +218,9 @@ void testTkHistoMap::analyze(const edm::Event& iEvent,
 
     const StripGeomDetUnit*_StripGeomDetUnit = dynamic_cast<const StripGeomDetUnit*>(tkgeom->idToDetUnit(DetId(TkDetIdList[i])));
     globalPos=(_StripGeomDetUnit->surface()).toGlobal(localPos);
-    
+
     value = TkDetIdList[i]%1000000;
-    
+
     //tkhisto->fill(TkDetIdList[i],value);
     //tkhistoBis->fill(TkDetIdList[i],value);
     tkhistoZ->fill(TkDetIdList[i],globalPos.z());
@@ -224,7 +235,7 @@ void testTkHistoMap::analyze(const edm::Event& iEvent,
       edm::LogError("testTkHistoMap") << " input value " << value << " differs from read value " << tkhisto->getValue(TkDetIdList[i]) << std::endl;
 
     // For usage that reset histo content use setBinContent instead than fill
-    /* 
+    /*
     tkhisto->setBinContent(TkDetIdList[i],value);
     tkhistoZ->setBinContent(TkDetIdList[i],globalPos.z());
     tkhistoPhi->setBinContent(TkDetIdList[i],globalPos.phi());

@@ -15,14 +15,15 @@
 
 #include "DQM/SiStripCommon/interface/TkHistoMap.h"
 #include "CommonTools/TrackerMap/interface/TrackerMap.h"
+#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
 
 
-class SiStripDetVOffTkMapPlotter : public edm::EDAnalyzer {
+class SiStripDetVOffTkMapPlotter : public DQMEDAnalyzer {
 public:
   explicit SiStripDetVOffTkMapPlotter(const edm::ParameterSet& iConfig );
   virtual ~SiStripDetVOffTkMapPlotter();
   virtual void analyze( const edm::Event& evt, const edm::EventSetup& evtSetup);
-  virtual void endJob();
+  void bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup);
 
 private:
   std::string formatIOV(cond::Time_t iov, std::string format="%Y-%m-%d__%H_%M_%S");
@@ -30,6 +31,10 @@ private:
   cond::persistency::ConnectionPool m_connectionPool;
   std::string m_condDb;
   std::string m_plotTag;
+
+  TkHistoMap* _lvhisto;
+  TkHistoMap* _hvhisto;
+
 
   // IOV of plotting.
   cond::Time_t m_IOV;
@@ -56,7 +61,15 @@ SiStripDetVOffTkMapPlotter::SiStripDetVOffTkMapPlotter(const edm::ParameterSet& 
 }
 
 SiStripDetVOffTkMapPlotter::~SiStripDetVOffTkMapPlotter() {
+  delete _hvhisto;
+  delete _lvhisto;
 }
+
+void SiStripDetVOffTkMapPlotter::bookHistograms(DQMStore::IBooker & ibooker , const edm::Run & run, const edm::EventSetup & eSetup){
+   _lvhisto =  new TkHistoMap(ibooker,"LV_Status","LV_Status",-1.);
+   _hvhisto =  new TkHistoMap(ibooker,"HV_Status","HV_Status",-1.);
+}
+
 
 void SiStripDetVOffTkMapPlotter::analyze(const edm::Event& evt, const edm::EventSetup& evtSetup) {
 
@@ -86,38 +99,34 @@ void SiStripDetVOffTkMapPlotter::analyze(const edm::Event& evt, const edm::Event
   auto payload = condDbSession.fetchPayload<SiStripDetVOff>( (*iiov).payloadId );
 
   TrackerMap lvmap,hvmap;
-  TkHistoMap lvhisto("LV_Status","LV_Status",-1);
-  TkHistoMap hvhisto("HV_Status","HV_Status",-1);
 
   auto detids = detidReader->getAllDetIds();
   for (auto id : detids){
     if (payload->IsModuleLVOff(id))
-      lvhisto.fill(id, 1); // RED
+      _lvhisto->fill(id, 1); // RED
     else
-      lvhisto.fill(id, 0.5);
+      _lvhisto->fill(id, 0.5);
 
     if (payload->IsModuleHVOff(id))
-      hvhisto.fill(id, 1); // RED
+      _hvhisto->fill(id, 1); // RED
     else
-      hvhisto.fill(id, 0.5);
+      _hvhisto->fill(id, 0.5);
   }
 
-  lvhisto.dumpInTkMap(&lvmap);
-  hvhisto.dumpInTkMap(&hvmap);
+  _lvhisto->dumpInTkMap(&lvmap);
+  _hvhisto->dumpInTkMap(&hvmap);
   lvmap.setPalette(1);
   hvmap.setPalette(1);
   lvmap.save(true,0,0,"LV_tkMap_"+formatIOV(theIov)+"."+m_plotFormat);
   hvmap.save(true,0,0,"HV_tkMap_"+formatIOV(theIov)+"."+m_plotFormat);
 
   if (!m_outputFile.empty()){
-    lvhisto.save(m_outputFile);
-    hvhisto.save(m_outputFile);
+    _lvhisto->save(m_outputFile);
+    _hvhisto->save(m_outputFile);
   }
 
 }
 
-void SiStripDetVOffTkMapPlotter::endJob() {
-}
 
 std::string SiStripDetVOffTkMapPlotter::formatIOV(cond::Time_t iov, std::string format) {
   auto facet = new boost::posix_time::time_facet(format.c_str());
@@ -128,4 +137,3 @@ std::string SiStripDetVOffTkMapPlotter::formatIOV(cond::Time_t iov, std::string 
 }
 
 DEFINE_FWK_MODULE(SiStripDetVOffTkMapPlotter);
-
