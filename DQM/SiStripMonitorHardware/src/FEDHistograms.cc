@@ -807,7 +807,7 @@ void FEDHistograms::bookTopLevelHistograms(DQMStore::IBooker & ibooker , std::st
 
   //book map after, as it creates a new folder...
   if (tkMapConfig_.enabled){
-    tkmapFED_ = new TkHistoMap(topFolderName,"TkHMap_FractionOfBadChannels",0.,true);
+    tkmapFED_ = new TkHistoMap(ibooker, topFolderName,"TkHMap_FractionOfBadChannels",0.,true);
   }
   else tkmapFED_ = 0;
 

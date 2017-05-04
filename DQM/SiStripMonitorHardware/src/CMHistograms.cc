@@ -17,7 +17,7 @@ CMHistograms::CMHistograms()
 CMHistograms::~CMHistograms()
 {
 }
-  
+
 void CMHistograms::initialise(const edm::ParameterSet& iConfig,
 			      std::ostringstream* pDebugStream
 			      )
@@ -36,7 +36,7 @@ void CMHistograms::initialise(const edm::ParameterSet& iConfig,
   getConfigForHistogram(medianperChannel_,"MedianperChannel",iConfig,pDebugStream);
   getConfigForHistogram(medianAPV0minusAPV1perChannel_,"MedianAPV0minusAPV1perChannel",iConfig,pDebugStream);
 
-  
+
   getConfigForHistogram(tkMapConfig_,"TkHistoMap",iConfig,pDebugStream);
 
   if (iConfig.exists("FedIdVec")){
@@ -114,43 +114,43 @@ void CMHistograms::bookTopLevelHistograms(DQMStore::IBooker & ibooker)
 		"median APV0 - median APV1",
 		500,-500,500,
 		"median APV0 - median APV1");
-  
+
 
   bookProfile(ibooker , meanCMPerFedvsFedId_,
 	      "MeanCMPerFedvsFedId",
 	      "<CM> vs fedID",
 	      440,50,490,-1000,1000,
 	      "fedID","<CM>^{FED}");
-  
+
   bookProfile(ibooker , meanCMPerFedvsTime_,
 	      "MeanCMPerFedvsTime",
 	      "<CM> vs time",
 	      0,1000,
 	      "Time","<CM>^{FED}");
-  
-  
+
+
   bookProfile(ibooker , variationsPerFedvsFedId_,
 	      "VariationsPerFedvsFedId",
 	      "<CM> vs fedID",
 	      440,50,490,-1000,1000,
 	      "fedID","<CM>^{FED}_{t}-<CM>^{FED}_{t-1}");
-  
+
   bookProfile(ibooker , variationsPerFedvsTime_,
 	      "VariationsPerFedvsTime",
 	      "<CM> vs time",
 	      0,1000,
 	      "Time","<CM>^{FED}_{t}-<CM>^{FED}_{t-1}");
-  
 
-  
+
+
   ibooker.cd(lDir);
-    
+
   //book map after, as it creates a new folder...
   if (tkMapConfig_.enabled){
-    tkmapCM_[0] = new TkHistoMap("SiStrip/TkHisto","TkHMap_MeanCMAPV",0.,500);
-    tkmapCM_[1] = new TkHistoMap("SiStrip/TkHisto","TkHMap_RmsCMAPV",0.,500);
-    tkmapCM_[2] = new TkHistoMap("SiStrip/TkHisto","TkHMap_MeanCMAPV0minusAPV1",-500.,500);
-    tkmapCM_[3] = new TkHistoMap("SiStrip/TkHisto","TkHMap_RmsCMAPV0minusAPV1",-500.,500);
+    tkmapCM_[0] = new TkHistoMap(ibooker, "SiStrip/TkHisto","TkHMap_MeanCMAPV",0.,500);
+    tkmapCM_[1] = new TkHistoMap(ibooker, "SiStrip/TkHisto","TkHMap_RmsCMAPV",0.,500);
+    tkmapCM_[2] = new TkHistoMap(ibooker, "SiStrip/TkHisto","TkHMap_MeanCMAPV0minusAPV1",-500.,500);
+    tkmapCM_[3] = new TkHistoMap(ibooker, "SiStrip/TkHisto","TkHMap_RmsCMAPV0minusAPV1",-500.,500);
   }
   else {
     tkmapCM_[0] = 0;
@@ -175,14 +175,14 @@ void CMHistograms::bookFEDHistograms(DQMStore::IBooker & ibooker, unsigned int f
     fedIdStream << fedId;
 
     ibooker.setCurrentFolder(fedKey.path());
-    
+
     book2DHistogram(ibooker , medianAPV1vsAPV0perFED_,
 		    medianAPV1vsAPV0perFEDMap_[fedId],
 		    "MedianAPV1vsAPV0forFED"+fedIdStream.str(),
 		    "median APV1 vs APV0 for FED "+fedIdStream.str(),
 		    250,0,500,250,0,500,
 		    "APV0","APV1");
-    
+
     bookHistogram(ibooker , medianAPV0minusAPV1perFED_,
 		  medianAPV0minusAPV1perFEDMap_[fedId],
 		  "MedianAPV0minusAPV1forFED"+fedIdStream.str(),
@@ -221,7 +221,7 @@ void CMHistograms::bookChannelsHistograms(DQMStore::IBooker & ibooker , unsigned
 		  lTitle0.str(),
 		  250,0,500,
 		  "median APVs");
-    
+
 
     bookHistogram(ibooker , medianAPV0minusAPV1perChannel_,
 		  medianAPV0minusAPV1perChannelMap_[fedId][iCh],
@@ -229,7 +229,7 @@ void CMHistograms::bookChannelsHistograms(DQMStore::IBooker & ibooker , unsigned
 		  lTitle2.str(),
 		  250,-500,500,
 		  "median APV0-APV1");
-    
+
   }
 
 }
