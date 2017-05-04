@@ -9,8 +9,6 @@ SiStripQualityDQM::SiStripQualityDQM(const edm::EventSetup & eSetup,
                                          edm::ParameterSet const& fPSet):SiStripBaseCondObjDQM(eSetup, hPSet, fPSet){
   qualityLabel_ = fPSet.getParameter<std::string>("StripQualityLabel");
 
-  // Build the Histo_TkMap:
-  if(HistoMaps_On_ ) Tk_HM_ = new TkHistoMap("SiStrip/Histo_Map","Quality_TkMap",0.);
 
 }
 // -----
@@ -21,6 +19,11 @@ SiStripQualityDQM::SiStripQualityDQM(const edm::EventSetup & eSetup,
 SiStripQualityDQM::~SiStripQualityDQM(){}
 // -----
 
+
+void SiStripQualityDQM::bookHistos(DQMStore::IBooker & ibooker){
+  // Build the Histo_TkMap:
+  if(HistoMaps_On_ ) Tk_HM_ = new TkHistoMap(ibooker,"SiStrip/Histo_Map","Quality_TkMap",0.);
+}
 
 // -----
 void SiStripQualityDQM::getActiveDetIds(const edm::EventSetup & eSetup){
@@ -38,15 +41,15 @@ void SiStripQualityDQM::fillModMEs(const std::vector<uint32_t> & selectedDetIds,
   edm::ESHandle<TrackerTopology> tTopoHandle;
   es.get<TrackerTopologyRcd>().get(tTopoHandle);
   const TrackerTopology* const tTopo = tTopoHandle.product();
-   
+
   ModMEs CondObj_ME;
-  
+
   for(std::vector<uint32_t>::const_iterator detIter_ = selectedDetIds.begin();
                                             detIter_!= selectedDetIds.end();detIter_++){
     fillMEsForDet(CondObj_ME,*detIter_,tTopo);
-      
+
   }
-}    
+}
 // -----
 
 
@@ -54,18 +57,18 @@ void SiStripQualityDQM::fillModMEs(const std::vector<uint32_t> & selectedDetIds,
 //===================================================
 // -----
 void SiStripQualityDQM::fillMEsForDet(const ModMEs& _selModME_, uint32_t selDetId_, const TrackerTopology* tTopo){
-  ModMEs selModME_ = _selModME_;  
+  ModMEs selModME_ = _selModME_;
   getModMEs(selModME_,selDetId_, tTopo);
-  
+
   SiStripQuality::Range qualityRange = qualityHandle_->getRange(selDetId_);
   int nStrip =  reader->getNumberOfApvsAndStripLength(selDetId_).first*128;
-  
+
   for( int istrip=0;istrip<nStrip;++istrip){
          selModME_.ProfileDistr->Fill(istrip+1,qualityHandle_->IsStripBad(qualityRange,istrip)?0.:1.);
 
   }// istrip
-  
-}    
+
+}
 // -----
 
 //====================================================
@@ -105,44 +108,44 @@ void SiStripQualityDQM::fillSummaryMEs(const std::vector<uint32_t> & selectedDet
 //=================================================
 // -----
 void SiStripQualityDQM::fillMEsForLayer(/* std::map<uint32_t, ModMEs> selMEsMap_,*/ uint32_t selDetId_, const TrackerTopology* tTopo){
-  
+
   float numberOfBadStrips=0;
-  
+
   SiStripHistoId hidmanager;
 
   if(hPSet_.getParameter<bool>("FillSummaryAtLayerLevel")){
-      
+
     std::string hSummary_description;
     hSummary_description  = hPSet_.getParameter<std::string>("Summary_description");
-      
-    std::string hSummary_name; 
-  
+
+    std::string hSummary_name;
+
     // ----
     int subDetId_ = ((selDetId_>>25)&0x7);
-  
-    if( subDetId_<3 || subDetId_>6 ){ 
+
+    if( subDetId_<3 || subDetId_>6 ){
       edm::LogError("SiStripQualityDQM")
 	<< "[SiStripQualityDQM::fillMEsForLayer] WRONG INPUT : no such subdetector type : "
-	<< subDetId_ << " no folder set!" 
+	<< subDetId_ << " no folder set!"
 	<< std::endl;
       return;
     }
     // ----
 
-    hSummary_name = hidmanager.createHistoLayer(hSummary_description, 
-						"layer", 
-						getLayerNameAndId(selDetId_,tTopo).first, 
+    hSummary_name = hidmanager.createHistoLayer(hSummary_description,
+						"layer",
+						getLayerNameAndId(selDetId_,tTopo).first,
 						"") ;
-        
+
     std::map<uint32_t, ModMEs>::iterator selMEsMapIter_ = SummaryMEsMap_.find(getLayerNameAndId(selDetId_,tTopo).second);
-    
+
     ModMEs selME_;
     if ( selMEsMapIter_ != SummaryMEsMap_.end())
       selME_ =selMEsMapIter_->second;
 
     getSummaryMEs(selME_,selDetId_,tTopo);
-  
-  
+
+
     std::vector<uint32_t> sameLayerDetIds_;
     sameLayerDetIds_.clear();
     sameLayerDetIds_=GetSameLayerDetId(activeDetIds,selDetId_,tTopo);
@@ -159,16 +162,16 @@ void SiStripQualityDQM::fillMEsForLayer(/* std::map<uint32_t, ModMEs> selMEsMap_
     //%%%%%%%%%%%%%%%%%%%%%%% END %%%%%%%%%%
 
     for(unsigned int i=0;i< sameLayerDetIds_.size(); i++){
-    
+
       SiStripQuality::Range qualityRange = qualityHandle_->getRange(sameLayerDetIds_[i]);
       int nStrip =  reader->getNumberOfApvsAndStripLength(sameLayerDetIds_[i]).first*128;
-    
+
       numberOfBadStrips=0;
-    
+
       for( int istrip=0;istrip<nStrip;++istrip){
 	if(qualityHandle_->IsStripBad(qualityRange,istrip)) { numberOfBadStrips++;}
       }
-    
+
 	float fr=100*float(numberOfBadStrips)/nStrip;
 	selME_.SummaryDistr->Fill(i+1,fr);
 	if(fr>20){
@@ -184,11 +187,11 @@ void SiStripQualityDQM::fillMEsForLayer(/* std::map<uint32_t, ModMEs> selMEsMap_
 	if(fPSet_.getParameter<bool>("TkMap_On") || hPSet_.getParameter<bool>("TkMap_On")){
 	  fillTkMap(sameLayerDetIds_[i], fr);
 	}
-    } 
-  }//if Fill ...  
-}  
+    }
+  }//if Fill ...
+}
 // -----
- 
+
 
 //=============================
 void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
@@ -197,7 +200,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
   edm::ESHandle<TrackerTopology> tTopoHandle;
   eSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
   const TrackerTopology* const tTopo = tTopoHandle.product();
-     
+
   std::string hSummary_BadObjects_xTitle        = hPSet_.getParameter<std::string>("Summary_BadObjects_histo_xTitle");
 
   std::string hSummary_BadModules_name          = hPSet_.getParameter<std::string>("Summary_BadModules_histo_name");
@@ -212,14 +215,14 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
   std::string hSummary_BadStrips_name          = hPSet_.getParameter<std::string>("Summary_BadStrips_histo_name");
   std::string hSummary_BadStrips_yTitle        = hPSet_.getParameter<std::string>("Summary_BadStrips_histo_yTitle");
 
-  int NchX           = 34; 
+  int NchX           = 34;
   double LowX        = 0.5;
   double HighX       = 34.5;
-                    
 
 
-   
-  MonitorElement *ME[4];         
+
+
+  MonitorElement *ME[4];
 
   DQMStore* dqmStore_=edm::Service<DQMStore>().operator->();
 
@@ -256,7 +259,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
   }
 
   std::stringstream ss;
-  ss.str(""); 
+  ss.str("");
   std::vector<uint32_t> detids=reader->getAllDetIds();
   std::vector<uint32_t>::const_iterator idet=detids.begin();
   for(;idet!=detids.end();++idet){
@@ -266,19 +269,19 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
 
 
   std::vector<SiStripQuality::BadComponent> BC = qualityHandle_->getBadComponentList();
-  
+
   for (size_t i=0;i<BC.size();++i){
-    
+
     //&&&&&&&&&&&&&
     //Full Tk
     //&&&&&&&&&&&&&
 
-    if (BC[i].BadModule) 
+    if (BC[i].BadModule)
       NTkBadComponent[0]++;
-    if (BC[i].BadFibers) 
+    if (BC[i].BadFibers)
       NTkBadComponent[1]+= ( (BC[i].BadFibers>>2)&0x1 )+ ( (BC[i].BadFibers>>1)&0x1 ) + ( (BC[i].BadFibers)&0x1 );
     if (BC[i].BadApvs)
-      NTkBadComponent[2]+= ( (BC[i].BadApvs>>5)&0x1 )+ ( (BC[i].BadApvs>>4)&0x1 ) + ( (BC[i].BadApvs>>3)&0x1 ) + 
+      NTkBadComponent[2]+= ( (BC[i].BadApvs>>5)&0x1 )+ ( (BC[i].BadApvs>>4)&0x1 ) + ( (BC[i].BadApvs>>3)&0x1 ) +
 	( (BC[i].BadApvs>>2)&0x1 )+ ( (BC[i].BadApvs>>1)&0x1 ) + ( (BC[i].BadApvs)&0x1 );
 
     //&&&&&&&&&&&&&&&&&
@@ -291,9 +294,9 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
       //&&&&&&&&&&&&&&&&&
       //TIB
       //&&&&&&&&&&&&&&&&&
-      
+
       component=tTopo->tibLayer(BC[i].detid);
-      SetBadComponents(0, component, BC[i]);         
+      SetBadComponents(0, component, BC[i]);
 
     } else if ( a.subdetId() == SiStripDetId::TID ) {
       //&&&&&&&&&&&&&&&&&
@@ -301,7 +304,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
       //&&&&&&&&&&&&&&&&&
 
       component=tTopo->tidSide(BC[i].detid)==2?tTopo->tidWheel(BC[i].detid):tTopo->tidWheel(BC[i].detid)+3;
-      SetBadComponents(1, component, BC[i]);         
+      SetBadComponents(1, component, BC[i]);
 
     } else if ( a.subdetId() == SiStripDetId::TOB ) {
       //&&&&&&&&&&&&&&&&&
@@ -309,7 +312,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
       //&&&&&&&&&&&&&&&&&
 
       component=tTopo->tobLayer(BC[i].detid);
-      SetBadComponents(2, component, BC[i]);         
+      SetBadComponents(2, component, BC[i]);
 
     } else if ( a.subdetId() == SiStripDetId::TEC ) {
       //&&&&&&&&&&&&&&&&&
@@ -317,9 +320,9 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
       //&&&&&&&&&&&&&&&&&
 
       component=tTopo->tecSide(BC[i].detid)==2?tTopo->tecWheel(BC[i].detid):tTopo->tecWheel(BC[i].detid)+9;
-      SetBadComponents(3, component, BC[i]);         
+      SetBadComponents(3, component, BC[i]);
 
-    }    
+    }
   }
 
   //&&&&&&&&&&&&&&&&&&
@@ -328,7 +331,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
 
   SiStripQuality::RegistryIterator rbegin = qualityHandle_->getRegistryVectorBegin();
   SiStripQuality::RegistryIterator rend   = qualityHandle_->getRegistryVectorEnd();
-  
+
   for (SiStripBadStrip::RegistryIterator rp=rbegin; rp != rend; ++rp) {
     uint32_t detid=rp->detid;
 
@@ -347,10 +350,10 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
     } else if ( a.subdetId() == 6 ) {
       subdet=3;
       component=tTopo->tecSide(detid)==2?tTopo->tecWheel(detid):tTopo->tecWheel(detid)+9;
-    } 
+    }
 
     SiStripQuality::Range sqrange = SiStripQuality::Range( qualityHandle_->getDataVectorBegin()+rp->ibegin , qualityHandle_->getDataVectorBegin()+rp->iend );
-        
+
     for(int it=0;it<sqrange.second-sqrange.first;it++){
       unsigned int range=qualityHandle_->decode( *(sqrange.first+it) ).range;
       NTkBadComponent[3]+=range;
@@ -358,8 +361,8 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
       NBadComponent[subdet][component][3]+=range;
     }
   }
-  
- 
+
+
   //&&&&&&&&&&&&&&&&&&
   // printout
   //&&&&&&&&&&&&&&&&&&
@@ -390,7 +393,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
     ss << "\nTID+ Disk " << i   << " :\t\t"<<NBadComponent[1][i][0]<<"\t"<<NBadComponent[1][i][1]<<"\t"<<NBadComponent[1][i][2]<<"\t"<<NBadComponent[1][i][3];
     std::stringstream binlabel;
       binlabel<<"TID+ D "<<i;
-    
+
     for(int j=0;j<4;j++){
       ME[j]->Fill(i+4,NBadComponent[1][i][j]);
       ME[j]->getTH1()->GetXaxis()->SetBinLabel(i+4,binlabel.str().c_str());
@@ -415,7 +418,7 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
     for(int j=0;j<4;j++){
       ME[j]->Fill(i+10,NBadComponent[2][i][j]);
       ME[j]->getTH1()->GetXaxis()->SetBinLabel(i+10,binlabel.str().c_str());
-    }  
+    }
   }
   ss << "\n";
   for (int i=1;i<10;++i){
@@ -469,51 +472,50 @@ void SiStripQualityDQM::fillGrandSummaryMEs(const edm::EventSetup& eSetup){
   }
 
 
-} 
+}
 
 //=====================
 void SiStripQualityDQM::SetBadComponents(int i, int component,SiStripQuality::BadComponent& BC){
 
   int napv=reader->getNumberOfApvsAndStripLength(BC.detid).first;
 
-  ssV[i][component] << "\n\t\t " 
-		    << BC.detid 
-		    << " \t " << BC.BadModule << " \t " 
+  ssV[i][component] << "\n\t\t "
+		    << BC.detid
+		    << " \t " << BC.BadModule << " \t "
 		    << ( (BC.BadFibers)&0x1 ) << " ";
   if (napv==4)
     ssV[i][component] << "x " <<( (BC.BadFibers>>1)&0x1 );
-  
+
   if (napv==6)
     ssV[i][component] << ( (BC.BadFibers>>1)&0x1 ) << " "
 		      << ( (BC.BadFibers>>2)&0x1 );
-  ssV[i][component] << " \t " 
-		    << ( (BC.BadApvs)&0x1 ) << " " 
+  ssV[i][component] << " \t "
+		    << ( (BC.BadApvs)&0x1 ) << " "
 		    << ( (BC.BadApvs>>1)&0x1 ) << " ";
-  if (napv==4) 
-    ssV[i][component] << "x x " << ( (BC.BadApvs>>2)&0x1 ) << " " 
+  if (napv==4)
+    ssV[i][component] << "x x " << ( (BC.BadApvs>>2)&0x1 ) << " "
 		      << ( (BC.BadApvs>>3)&0x1 );
-  if (napv==6) 
-    ssV[i][component] << ( (BC.BadApvs>>2)&0x1 ) << " " 
-		      << ( (BC.BadApvs>>3)&0x1 ) << " " 
-		      << ( (BC.BadApvs>>4)&0x1 ) << " " 
-		      << ( (BC.BadApvs>>5)&0x1 ) << " "; 
+  if (napv==6)
+    ssV[i][component] << ( (BC.BadApvs>>2)&0x1 ) << " "
+		      << ( (BC.BadApvs>>3)&0x1 ) << " "
+		      << ( (BC.BadApvs>>4)&0x1 ) << " "
+		      << ( (BC.BadApvs>>5)&0x1 ) << " ";
 
   if (BC.BadApvs){
-    NBadComponent[i][0][2]+= ( (BC.BadApvs>>5)&0x1 )+ ( (BC.BadApvs>>4)&0x1 ) + ( (BC.BadApvs>>3)&0x1 ) + 
+    NBadComponent[i][0][2]+= ( (BC.BadApvs>>5)&0x1 )+ ( (BC.BadApvs>>4)&0x1 ) + ( (BC.BadApvs>>3)&0x1 ) +
       ( (BC.BadApvs>>2)&0x1 )+ ( (BC.BadApvs>>1)&0x1 ) + ( (BC.BadApvs)&0x1 );
-    NBadComponent[i][component][2]+= ( (BC.BadApvs>>5)&0x1 )+ ( (BC.BadApvs>>4)&0x1 ) + ( (BC.BadApvs>>3)&0x1 ) + 
+    NBadComponent[i][component][2]+= ( (BC.BadApvs>>5)&0x1 )+ ( (BC.BadApvs>>4)&0x1 ) + ( (BC.BadApvs>>3)&0x1 ) +
       ( (BC.BadApvs>>2)&0x1 )+ ( (BC.BadApvs>>1)&0x1 ) + ( (BC.BadApvs)&0x1 );
     //    tkMap->fillc(BC.detid,0xff0000);
   }
-  if (BC.BadFibers){ 
+  if (BC.BadFibers){
     NBadComponent[i][0][1]+= ( (BC.BadFibers>>2)&0x1 )+ ( (BC.BadFibers>>1)&0x1 ) + ( (BC.BadFibers)&0x1 );
     NBadComponent[i][component][1]+= ( (BC.BadFibers>>2)&0x1 )+ ( (BC.BadFibers>>1)&0x1 ) + ( (BC.BadFibers)&0x1 );
     //    tkMap->fillc(BC.detid,0x0000ff);
-  }   
+  }
   if (BC.BadModule){
     NBadComponent[i][0][0]++;
     NBadComponent[i][component][0]++;
     //    tkMap->fillc(BC.detid,0x0);
   }
 }
-

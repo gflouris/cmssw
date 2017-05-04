@@ -10,32 +10,34 @@
 #include "CondFormats/DataRecord/interface/SiStripApvGainRcd.h"
 
 
-class SiStripApvGainsDQM : public SiStripBaseCondObjDQM{
- 
+class SiStripApvGainsDQM : public SiStripBaseCondObjDQM {
+
   public:
-  
-  SiStripApvGainsDQM(const edm::EventSetup & eSetup,
+
+  explicit SiStripApvGainsDQM(const edm::EventSetup & eSetup,
                      edm::ParameterSet const& hPSet,
                      edm::ParameterSet const& fPSet);
-  
-  virtual ~SiStripApvGainsDQM();
+
+  ~SiStripApvGainsDQM();
+
+  void bookHistos(DQMStore::IBooker & ibooker);
 
   void getActiveDetIds(const edm::EventSetup & eSetup);
 
   void fillModMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es);
   void fillSummaryMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es);
-  
+
   void fillMEsForDet(const ModMEs& selModME_,uint32_t selDetId_, const TrackerTopology* tTopo);
-  
+
   void fillMEsForLayer( /*std::map<uint32_t, ModMEs> selModMEsMap_, */ uint32_t selDetId_, const TrackerTopology* tTopo);
-  
+
   unsigned long long getCache(const edm::EventSetup & eSetup){ return eSetup.get<SiStripApvGainRcd>().cacheIdentifier();}
-  
+
   void getConditionObject(const edm::EventSetup & eSetup){
     eSetup.get<SiStripApvGainRcd>().get(gainHandle_);
     cacheID_memory = cacheID_current;
   }
-   
+
   private:
     edm::ESHandle<SiStripApvGain> gainHandle_;
 

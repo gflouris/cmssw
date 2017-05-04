@@ -9,25 +9,27 @@
 
 
 class SiStripPedestalsDQM : public SiStripBaseCondObjDQM{
- 
+
   public:
-  
+
   SiStripPedestalsDQM(const edm::EventSetup & eSetup,
                       edm::ParameterSet const& hPSet,
                       edm::ParameterSet const& fPSet);
-  
+
   virtual ~SiStripPedestalsDQM();
-  
+
+  void bookHistos(DQMStore::IBooker & ibooker);
+
   void getActiveDetIds(const edm::EventSetup & eSetup);
 
   void fillModMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es);
   void fillSummaryMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es);
- 	       
+
   void fillMEsForDet(const ModMEs& selModME_,uint32_t selDetId_, const TrackerTopology* tTopo);
   void fillMEsForLayer( /*std::map<uint32_t, ModMEs> selModMEsMap_, */ uint32_t selDetId_, const TrackerTopology* tTopo);
-  
+
   unsigned long long getCache(const edm::EventSetup & eSetup){ return eSetup.get<SiStripPedestalsRcd>().cacheIdentifier();}
-  
+
   void getConditionObject(const edm::EventSetup & eSetup){
     eSetup.get<SiStripPedestalsRcd>().get(pedestalHandle_);
     cacheID_memory = cacheID_current;

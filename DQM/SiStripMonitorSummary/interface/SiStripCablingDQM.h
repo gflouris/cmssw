@@ -13,14 +13,16 @@
 #include "CalibFormats/SiStripObjects/interface/SiStripDetCabling.h"
 
 class SiStripCablingDQM: public SiStripBaseCondObjDQM{
-  
+
   public:
 
   SiStripCablingDQM(const edm::EventSetup & eSetup,
 		    edm::ParameterSet const& hPSet,
 		    edm::ParameterSet const& fPSet);
-  
+
   ~SiStripCablingDQM();
+
+  void bookHistos(DQMStore::IBooker & ibooker);
 
   void fillModMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es){;}
   void fillSummaryMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es){;}
@@ -30,18 +32,18 @@ class SiStripCablingDQM: public SiStripBaseCondObjDQM{
 
   void getActiveDetIds(const edm::EventSetup & eSetup);
   unsigned long long getCache(const edm::EventSetup & eSetup){ return eSetup.get<SiStripDetCablingRcd>().cacheIdentifier();}
-  
+
   void getConditionObject(const edm::EventSetup & eSetup){
     eSetup.get<SiStripDetCablingRcd>().get(cablingHandle_);
     cacheID_memory = cacheID_current;
   }
 
- 
+
   private:
-  
-  //  SiStripDetInfoFileReader* reader; 
+
+  //  SiStripDetInfoFileReader* reader;
   //  std::pair<std::string,uint32_t> getLayerNameAndId(const uint32_t&);
-  edm::ESHandle<SiStripDetCabling> cablingHandle_;  
+  edm::ESHandle<SiStripDetCabling> cablingHandle_;
 };
 
 #endif

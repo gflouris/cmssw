@@ -7,9 +7,6 @@
 SiStripPedestalsDQM::SiStripPedestalsDQM(const edm::EventSetup & eSetup,
                                          edm::ParameterSet const& hPSet,
                                          edm::ParameterSet const& fPSet):SiStripBaseCondObjDQM(eSetup, hPSet, fPSet){
-
-  // Build the Histo_TkMap:
-  if(HistoMaps_On_ ) Tk_HM_ = new TkHistoMap("SiStrip/Histo_Map","MeanPed_TkMap",0.);
 }
 // -----
 
@@ -19,10 +16,14 @@ SiStripPedestalsDQM::SiStripPedestalsDQM(const edm::EventSetup & eSetup,
 SiStripPedestalsDQM::~SiStripPedestalsDQM(){}
 // -----
 
+void SiStripPedestalsDQM::bookHistos(DQMStore::IBooker & ibooker){
+  // Build the Histo_TkMap:
+  if(HistoMaps_On_ ) Tk_HM_ = new TkHistoMap(ibooker, "SiStrip/Histo_Map","MeanPed_TkMap",0.);
+}
 
 // -----
 void SiStripPedestalsDQM::getActiveDetIds(const edm::EventSetup & eSetup){
-  
+
   getConditionObject(eSetup);
   pedestalHandle_->getDetIds(activeDetIds);
 
@@ -32,21 +33,21 @@ void SiStripPedestalsDQM::getActiveDetIds(const edm::EventSetup & eSetup){
 
 // -----
 void SiStripPedestalsDQM::fillModMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es){
-   
+
   //Retrieve tracker topology from geometry
   edm::ESHandle<TrackerTopology> tTopoHandle;
   es.get<TrackerTopologyRcd>().get(tTopoHandle);
   const TrackerTopology* const tTopo = tTopoHandle.product();
 
   ModMEs CondObj_ME;
-  
+
   for(std::vector<uint32_t>::const_iterator detIter_ = selectedDetIds.begin();
       detIter_!= selectedDetIds.end();detIter_++){
-      
+
     fillMEsForDet(CondObj_ME,*detIter_,tTopo);
-      
+
   }
-}    
+}
 // -----
 
 
@@ -56,24 +57,24 @@ void SiStripPedestalsDQM::fillModMEs(const std::vector<uint32_t> & selectedDetId
 void SiStripPedestalsDQM::fillMEsForDet(const ModMEs& _selModME_, uint32_t selDetId_, const TrackerTopology* tTopo){
   ModMEs selModME_ = _selModME_;
   getModMEs(selModME_,selDetId_,tTopo);
-  
+
   SiStripPedestals::Range pedRange = pedestalHandle_->getRange(selDetId_);
   int nStrip =  reader->getNumberOfApvsAndStripLength(selDetId_).first*128;
-  
+
   for( int istrip=0;istrip<nStrip;++istrip){
       if( CondObj_fillId_ =="onlyProfile" || CondObj_fillId_ =="ProfileAndCumul"){
         selModME_.ProfileDistr->Fill(istrip+1,pedestalHandle_->getPed(istrip,pedRange));
       }
   }// istrip
-  
-}    
+
+}
 // -----
 
 
 
 // -----
 void SiStripPedestalsDQM::fillSummaryMEs(const std::vector<uint32_t> & selectedDetIds, const edm::EventSetup& es){
-   
+
   //Retrieve tracker topology from geometry
   edm::ESHandle<TrackerTopology> tTopoHandle;
   es.get<TrackerTopologyRcd>().get(tTopoHandle);
@@ -111,8 +112,8 @@ void SiStripPedestalsDQM::fillSummaryMEs(const std::vector<uint32_t> & selectedD
 
   }
 
-}           
-  
+}
+
 // -----
 
 
@@ -122,47 +123,47 @@ void SiStripPedestalsDQM::fillMEsForLayer( /*std::map<uint32_t, ModMEs> selMEsMa
 
   // ----
   int subdetectorId_ = ((selDetId_>>25)&0x7);
-    
-  if( subdetectorId_<3 || subdetectorId_>6 ){ 
+
+  if( subdetectorId_<3 || subdetectorId_>6 ){
     edm::LogError("SiStripPedestalsDQM")
       << "[SiStripPedestalsDQM::fillMEsForLayer] WRONG INPUT : no such subdetector type : "
-      << subdetectorId_ << " no folder set!" 
+      << subdetectorId_ << " no folder set!"
       << std::endl;
     return;
   }
   // ----
 
-//     // Cumulative distribution with average Ped value on a layer (not needed):  
-     
+//     // Cumulative distribution with average Ped value on a layer (not needed):
+
   std::map<uint32_t, ModMEs>::iterator selMEsMapIter_ = SummaryMEsMap_.find(getLayerNameAndId(selDetId_,tTopo).second);
   ModMEs selME_;
   if ( selMEsMapIter_ != SummaryMEsMap_.end())
     selME_ =selMEsMapIter_->second;
   getSummaryMEs(selME_,selDetId_,tTopo);
-    
+
   SiStripPedestals::Range pedRange = pedestalHandle_->getRange(selDetId_);
-  
+
   int nStrip =  reader->getNumberOfApvsAndStripLength(selDetId_).first*128;
-  
+
   SiStripHistoId hidmanager;
 
    if(hPSet_.getParameter<bool>("FillSummaryProfileAtLayerLevel")){
-  
-     // --> profile summary    
-  
+
+     // --> profile summary
+
      std::string hSummaryOfProfile_description;
      hSummaryOfProfile_description  = hPSet_.getParameter<std::string>("SummaryOfProfile_description");
-  
-     std::string hSummaryOfProfile_name; 
-  
-  
-    hSummaryOfProfile_name = hidmanager.createHistoLayer(hSummaryOfProfile_description, 
-							 "layer", 
-							 getLayerNameAndId(selDetId_,tTopo).first, 
+
+     std::string hSummaryOfProfile_name;
+
+
+    hSummaryOfProfile_name = hidmanager.createHistoLayer(hSummaryOfProfile_description,
+							 "layer",
+							 getLayerNameAndId(selDetId_,tTopo).first,
 							 "") ;
- 
+
     for( int istrip=0;istrip<nStrip;++istrip){
-    
+
 	if( CondObj_fillId_ =="onlyProfile" || CondObj_fillId_ =="ProfileAndCumul"){
 	  selME_.SummaryOfProfileDistr->Fill(istrip+1,pedestalHandle_->getPed(istrip,pedRange));
 	}
@@ -172,47 +173,47 @@ void SiStripPedestalsDQM::fillMEsForLayer( /*std::map<uint32_t, ModMEs> selMEsMa
       fillTkMap(selDetId_, pedestalHandle_->getPed(istrip,pedRange));
     }
 
-    }// istrip	
+    }// istrip
    }//if Fill ...
 
   if(hPSet_.getParameter<bool>("FillSummaryAtLayerLevel")){
 
-    // -->  summary  
-  
+    // -->  summary
+
     std::string hSummary_description;
     hSummary_description  = hPSet_.getParameter<std::string>("Summary_description");
-  
-    std::string hSummary_name; 
-    hSummary_name = hidmanager.createHistoLayer(hSummary_description, 
-						"layer", 
-						getLayerNameAndId(selDetId_,tTopo).first, 
+
+    std::string hSummary_name;
+    hSummary_name = hidmanager.createHistoLayer(hSummary_description,
+						"layer",
+						getLayerNameAndId(selDetId_,tTopo).first,
 						"") ;
     float meanPedestal=0;
-  
+
     for( int istrip=0;istrip<nStrip;++istrip){
-    
+
 	meanPedestal = meanPedestal + pedestalHandle_->getPed(istrip,pedRange);
-    
+
     }//istrip
-  
+
     meanPedestal = meanPedestal/nStrip;
 
 
     // -----
     // get detIds belonging to same layer to fill X-axis with detId-number
-  
+
     std::vector<uint32_t> sameLayerDetIds_;
-  
+
     sameLayerDetIds_.clear();
 
     sameLayerDetIds_=GetSameLayerDetId(activeDetIds,selDetId_,tTopo);
-  
-  
+
+
     unsigned int iBin=0;
     for(unsigned int i=0;i<sameLayerDetIds_.size();i++){
       if(sameLayerDetIds_[i]==selDetId_){iBin=i+1;}
-    }   
-  
+    }
+
     selME_.SummaryDistr->Fill(iBin,meanPedestal);
 
     // Fill the Histo_TkMap with the mean Pedestal:
@@ -220,9 +221,8 @@ void SiStripPedestalsDQM::fillMEsForLayer( /*std::map<uint32_t, ModMEs> selMEsMa
 
 
   }//if Fill ...
-  
-  
-  
-} 
-// -----
 
+
+
+}
+// -----

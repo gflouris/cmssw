@@ -9,8 +9,6 @@ SiStripCablingDQM::SiStripCablingDQM(const edm::EventSetup & eSetup,
 				     edm::ParameterSet const& hPSet,
 				     edm::ParameterSet const& fPSet):SiStripBaseCondObjDQM(eSetup, hPSet, fPSet){
 
-  // Build the Histo_TkMap:
-  if(HistoMaps_On_ ) Tk_HM_ = new TkHistoMap("SiStrip/Histo_Map","Cabling_TkMap",0.);
 
 }
 // -----
@@ -19,11 +17,15 @@ SiStripCablingDQM::SiStripCablingDQM(const edm::EventSetup & eSetup,
 SiStripCablingDQM::~SiStripCablingDQM(){}
 // -----
 
+void SiStripCablingDQM::bookHistos(DQMStore::IBooker & ibooker){
+	// Build the Histo_TkMap:
+  if(HistoMaps_On_ ) Tk_HM_ = new TkHistoMap(ibooker, "SiStrip/Histo_Map","Cabling_TkMap",0.);
+}
 
 
 // -----
 void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
-  
+
   //Retrieve tracker topology from geometry
   edm::ESHandle<TrackerTopology> tTopoHandle;
   eSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
@@ -54,10 +56,10 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
   }
 
 
- 
+
   std::vector<uint32_t>::const_iterator idet=activeDetIds.begin();
 
-  //fill arrays for counting and fill Histo_Map with value for connected : 
+  //fill arrays for counting and fill Histo_Map with value for connected :
   for(;idet!=activeDetIds.end();++idet){
     uint32_t detId = *idet;
     StripSubdetector subdet(detId);
@@ -69,15 +71,15 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
       for(uint32_t connDet_i=0; connDet_i<cablingHandle_->getConnections(detId).size(); connDet_i++){
         if(cablingHandle_->getConnections(detId)[connDet_i]!=0 &&  cablingHandle_->getConnections(detId)[connDet_i]->isConnected()!=0) n_conn++;
       }
-      fillTkMap(detId,n_conn*2.); 
+      fillTkMap(detId,n_conn*2.);
     }
-    switch (subdet.subdetId()) 
+    switch (subdet.subdetId())
       {
       case StripSubdetector::TIB:
 	{
           int i = tTopo->tibLayer(detId) - 1;
 	  counterTIB[i]++;
-	  break;       
+	  break;
 	}
       case StripSubdetector::TID:
 	{
@@ -88,13 +90,13 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
 	  } else if (side == 1) {
 	    counterTID[1][j]++;
 	  }
-	  break;       
+	  break;
 	}
       case StripSubdetector::TOB:
 	{
           int i = tTopo->tobLayer(detId) - 1;
 	  counterTOB[i]++;
-	  break;       
+	  break;
 	}
       case StripSubdetector::TEC:
 	{
@@ -105,7 +107,7 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
 	  } else if (side == 1) {
 	    counterTEC[1][j]++;
 	  }
-	  break;       
+	  break;
 	}
       }
 
@@ -142,7 +144,7 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
   for(int i=0;i<4;i++){
     ME->Fill(1,i+1,float(counterTIB[i])/TIBDetIds[i]);
   }
-  
+
   for(int i=0;i<2;i++){
     for(int j=0;j<3;j++){
       ME->Fill(i+2,j+1,float(counterTID[i][j])/TIDDetIds[i][j]);
@@ -152,7 +154,7 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
   for(int i=0;i<6;i++){
     ME->Fill(4,i+1,float(counterTOB[i])/TOBDetIds[i]);
   }
-  
+
   for(int i=0;i<2;i++){
     for(int j=0;j<9;j++){
       ME->Fill(i+5,j+1,float(counterTEC[i][j])/TECDetIds[i][j]);
@@ -170,5 +172,3 @@ void SiStripCablingDQM::getActiveDetIds(const edm::EventSetup & eSetup){
   }
 
 }
-
-

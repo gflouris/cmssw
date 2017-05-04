@@ -10,33 +10,35 @@
 #include "CondFormats/DataRecord/interface/SiStripApvGainRcd.h"
 
 class SiStripNoisesDQM : public SiStripBaseCondObjDQM{
- 
+
   public:
-  
+
   SiStripNoisesDQM(const edm::EventSetup & eSetup,
                    edm::ParameterSet const& hPSet,
                    edm::ParameterSet const& fPSet);
-  
+
   virtual ~SiStripNoisesDQM();
-  
+
+  void bookHistos(DQMStore::IBooker & ibooker);
+
   void getActiveDetIds(const edm::EventSetup & eSetup);
 
   void fillMEsForDet(const ModMEs& selModME_,uint32_t selDetId_, const TrackerTopology* tTopo);
   void fillMEsForLayer( /*std::map<uint32_t, ModMEs> selModMEsMap_, */ uint32_t selDetId_, const TrackerTopology* tTopo);
 
   unsigned long long getCache(const edm::EventSetup & eSetup){ return eSetup.get<SiStripNoisesRcd>().cacheIdentifier();}
-  
+
   void getConditionObject(const edm::EventSetup & eSetup){
     eSetup.get<SiStripNoisesRcd>().get(noiseHandle_);
     cacheID_memory = cacheID_current;
   }
- 
+
   private:
     bool gainRenormalisation_;
     bool simGainRenormalisation_;
-    edm::ESHandle<SiStripNoises> noiseHandle_; 
+    edm::ESHandle<SiStripNoises> noiseHandle_;
     edm::ESHandle<SiStripApvGain> gainHandle_;
-    
+
 };
 
 #endif
