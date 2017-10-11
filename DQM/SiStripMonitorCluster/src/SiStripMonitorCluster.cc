@@ -600,6 +600,67 @@ void SiStripMonitorCluster::bookHistograms(DQMStore::IBooker & ibooker, const ed
 
 }
 
+
+void SiStripMonitorCluster::maskSwitchesDCS(){
+
+  bool bdcs = false;
+  
+  layerswitchncluson            &= bdcs;
+  moduleswitchncluson           &= bdcs;
+  layerswitchcluschargeon       &= bdcs;
+  moduleswitchcluschargeon      &= bdcs;
+  subdetswitchcluschargeon      &= bdcs;
+  layerswitchclusstonon         &= bdcs;
+  moduleswitchclusstonon        &= bdcs;
+  layerswitchclusstonVsposon    &= bdcs;
+  moduleswitchclusstonVsposon   &= bdcs;
+  layerswitchclusposon          &= bdcs;
+  moduleswitchclusposon         &= bdcs;
+  layerswitchclusdigiposon      &= bdcs;
+  moduleswitchclusdigiposon     &= bdcs;
+  layerswitchclusnoiseon        &= bdcs;
+  moduleswitchclusnoiseon       &= bdcs;
+  layerswitchcluswidthon        &= bdcs;
+  moduleswitchcluswidthon       &= bdcs;
+  subdetswitchcluswidthon       &= bdcs;
+  layerswitchlocaloccupancy     &= bdcs;
+  moduleswitchlocaloccupancy    &= bdcs;
+  layerswitchnrclusterizedstrip &= bdcs;
+  moduleswitchnrclusterizedstrip &= bdcs;
+
+  //layerswitchnumclusterprofon   &= bdcs;
+  //layerswitchclusterwidthprofon &= bdcs;
+  //subdetswitchtotclusprofon     &= bdcs;
+  subdetswitchtotclusth1on      &= bdcs;
+  //subdetswitchapvcycleprofon    &= bdcs;
+  subdetswitchapvcycleth2on     &= bdcs;
+  //subdetswitchapvcycledbxprof2on &= bdcs;
+  //subdetswitchdbxcycleprofon    &= bdcs;
+  globalswitchcstripvscpix      &= bdcs;
+  globalswitchMultiRegions      &= bdcs;
+  globalswitchapvcycledbxth2on  &= bdcs;
+  globalswitchstripnoise2apvcycle &= bdcs;
+  globalswitchstripnoise3apvcycle &= bdcs;
+  globalswitchmaindiagonalposition &= bdcs;
+
+  globalswitchnclusvscycletimeprof2don &= bdcs;
+
+  globalswitchFEDCluster &= bdcs;
+
+  clusterWidth_vs_amplitude_on &= bdcs;
+  layer_clusterWidth_vs_amplitude_on  &= bdcs;
+  subdet_clusterWidth_vs_amplitude_on &= bdcs;
+  module_clusterWidth_vs_amplitude_on &= bdcs;
+
+  clustertkhistomapon    &= bdcs;
+  clusterchtkhistomapon  &= bdcs;
+  createTrendMEs         &= bdcs;
+  trendVsLs_             &= bdcs;
+  Mod_On_                &= bdcs;
+  ClusterHisto_          &= bdcs;
+
+}
+
 //--------------------------------------------------------------------------------------------
 void SiStripMonitorCluster::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
@@ -615,8 +676,12 @@ void SiStripMonitorCluster::analyze(const edm::Event& iEvent, const edm::EventSe
   //  std::cout << "passBPTXfilter_ ? " << passBPTXfilter_ << std::endl;
 
   // Filter out events if DCS Event if requested
-  if (dcsStatus_ && !dcsStatus_->getStatus(iEvent,iSetup)) return;
-
+  if (dcsStatus_ && !dcsStatus_->getStatus(iEvent,iSetup)) {
+        //if dcsStatus is required and dcs is false then call the masking function
+        //will mask all switches except those that fill the profiles
+        //trends are needed regardless the dcsstatus
+        maskSwitchesDCS();
+  }
   runNb   = iEvent.id().run();
   eventNb++;
   trendVar = trendVsLs_ ? iEvent.orbitNumber()/262144.0 : iEvent.orbitNumber()/11223.0; // lumisection : seconds

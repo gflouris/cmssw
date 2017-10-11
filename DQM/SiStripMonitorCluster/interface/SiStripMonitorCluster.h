@@ -129,6 +129,7 @@ class SiStripMonitorCluster : public DQMEDAnalyzer {
   int FindRegion(int nstrip,int npixel);
   void fillModuleMEs(ModMEs& mod_mes, ClusterProperties& cluster);
   void fillLayerMEs(LayerMEs&, ClusterProperties& cluster);
+  void maskSwitchesDCS();
 
   void ResetModuleMEs(uint32_t idet);
 
